@@ -275,6 +275,13 @@ body {
     background-repeat: no-repeat;
 }
 
+.cell.flagged {
+    --iconurl: url("./assets/img/icons/flag.png");
+    background-size: 90%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
 .cell:not([data-number=""])::before {
     content: attr(data-number);
     width: 100%;

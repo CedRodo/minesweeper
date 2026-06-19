@@ -21,6 +21,12 @@ const actions = {
     topiconpointerdown: false
 }
 
+const buttonsClickedOnGrid = {
+    button0: false,
+    button1: false,
+    button2: false,
+}
+
 const gameInfos = {
     level: "beginner",
     grid: {
@@ -71,8 +77,9 @@ const gameInfos = {
 }
 
 const minesPositions = [];
+const flagsPositions = [];
 const gridHintsAndMines = [];
-const iconsList = ["click", "heavysleep", "lose", "expert", "sleep", "start", "win", "flag", "mine"];
+const iconsList = ["click", "confident", "heavysleep", "lose", "expert", "sleep", "start", "win", "flag", "mine"];
 
 const getIconUrl = (icon) => {
     if (!iconsList.includes(icon))
@@ -255,7 +262,7 @@ const countingTime = () => {
     let loop;
     const timeLoop = () => {
         gameInfos.time.current = Date.now();
-        console.log("gameInfos.time.get():", gameInfos.time.get());        
+        // console.log("gameInfos.time.get():", gameInfos.time.get());        
         if (gameInfos.time.get() >= 999000) {
             endGame("lose");
         }
@@ -267,6 +274,36 @@ const countingTime = () => {
         displayTimeInfo();
     }
     loop = requestAnimationFrame(timeLoop);
+}
+
+const addFlag = (position) => {
+    console.log("addFlag position:", position);
+    const x = position.x;
+    const y = position.y;
+    let isAlreadyPresent = false;
+    flagsPositions.forEach(p => {
+        if (p[0] === x && p[1] === y) isAlreadyPresent = true;
+    });
+    if (!isAlreadyPresent) {
+        flagsPositions.push([x, y]);
+        gameInfos.grid.minesNb--;
+        displayMinesInfo();
+    }
+}
+
+const removeFlag = (position) => {
+    console.log("removeFlag position:", position);
+    const x = position.x;
+    const y = position.y;    
+    const index = flagsPositions.findIndex(p =>
+        p[0] === x && p[1] === y
+    );
+    console.log("index:", index);    
+    if (index !== -1) { 
+        flagsPositions.splice(index, 1);
+        gameInfos.grid.minesNb++;
+        displayMinesInfo();
+    }
 }
 
 const initialize = () => {
@@ -326,18 +363,49 @@ const gameSettings = (type, value) => {
     }
 }
 
+const firstInit = () => {
+    console.log("firstInit");
+    const level = "beginner";
+    document.querySelector(`.option_difficulty_${level}`).classList.add("selected");
+    gameSettings("level", level);
+    changeGridDimensions();
+    generateCells();
+}
+
 const pointerdownOnGrid = (event) => {
     console.log("pointerdownOnGrid event.target:", event.target.dataset.x, event.target.dataset.y);
     actions.gridpointerdown = true;
     if (getStatus("start")) {
-        getElement("gameTopIcon").src = `./${getIconUrl("click")}`;
-        getElement("cells").forEach(c => {
-            if (c === event.target && getStatus("start")) {
-                if (!(c.classList.contains("clicked") || c.classList.contains("opened"))) c.classList.add("clicked");
-            } else {
-                if (c.classList.contains("clicked")) c.classList.remove("clicked");
-            }
-        });
+        if (event.button >= 0 && event.button <= 2) buttonsClickedOnGrid[`button${event.button}`] = true;
+        if (event.button === 0) {
+            getElement("gameTopIcon").src = `./${getIconUrl("click")}`;
+            getElement("cells").forEach(c => {
+                if (c === event.target && getStatus("start")) {
+                    if (!(c.classList.contains("clicked") || c.classList.contains("opened"))) c.classList.add("clicked");
+                } else {
+                    if (c.classList.contains("clicked")) c.classList.remove("clicked");
+                }
+            });
+        } else if (event.button === 2) {
+            getElement("gameTopIcon").src = `./${getIconUrl("confident")}`;
+            getElement("cells").forEach(c => {
+                if (c === event.target && getStatus("start")) {
+                    if (!(c.classList.contains("clicked") || c.classList.contains("opened") || c.classList.contains("flagged"))) {
+                        c.classList.add("flagged");
+                        addFlag({ x: c.dataset.x, y: c.dataset.y });
+                    } else {
+                        if (c.classList.contains("flagged")) {
+                            c.classList.remove("flagged");
+                            removeFlag({ x: c.dataset.x, y: c.dataset.y });
+                        }
+                    }
+                } else {
+                    if (c.classList.contains("clicked")) c.classList.remove("clicked");
+                }
+            });
+        } else {
+            actions.gridpointerdown = false;
+        }
     }
 }
 
@@ -345,7 +413,13 @@ const pointermove = (event) => {
     // console.log("pointermove event.target:", event.target);
     getElement("cells").forEach(c => {
         if (c === event.target) {
-            if (!(c.classList.contains("clicked") || c.classList.contains("opened")) && getStatus("start") && actions.gridpointerdown)
+            if (!(c.classList.contains("clicked") ||
+                c.classList.contains("opened") ||
+                c.classList.contains("flagged")) &&
+                getStatus("start") &&
+                actions.gridpointerdown &&
+                buttonsClickedOnGrid.button0
+            )
                 c.classList.add("clicked");
         } else {
             if (c.classList.contains("clicked")) c.classList.remove("clicked");
@@ -368,25 +442,33 @@ const pointermove = (event) => {
 
 const pointerdownOnStart = (event) => {
     console.log("pointerdownOnStart event.target:", event.target);
+    if (event.button !== 0) return;
     actions.topiconpointerdown = true;
     if (!getElement("gameStart").classList.contains("clicked")) getElement("gameStart").classList.add("clicked");
 }
 
 const pointerdownOnReset = (event) => {
     console.log("pointerdownOnReset event.target:", event.target);
+    if (event.button !== 0) return;
     if (!event.currentTarget.classList.contains("clicked")) event.currentTarget.classList.add("clicked");
 }
 
 const pointerdownOnOption = (event) => {
     console.log("pointerdownOnOption event.target:", event.target);
-    if (!event.target.classList.contains("clicked") && !getStatus("start")) event.target.classList.add("clicked");
+    if (event.button !== 0) return;
+    if (!event.target.classList.contains("clicked") && !event.target.classList.contains("selected") && !getStatus("start")) event.target.classList.add("clicked");
 }
 
 const pointerup = (event) => {
-    console.log("pointerup event.target:", event.target);    
+    console.log("pointerup event.target:", event.target);   
     getElement("cells").forEach(c => {
         if (c.classList.contains("clicked")) c.classList.remove("clicked");
-        if (c === event.target && getStatus("start") && actions.gridpointerdown) {
+        if (c === event.target &&
+            getStatus("start") &&
+            !c.classList.contains("flagged") &&
+            actions.gridpointerdown &&
+            buttonsClickedOnGrid.button0
+        ) {
             if (!c.classList.contains("opened")) {
                 c.classList.add("opened");
                 checkHintsAndMines(c);
@@ -394,7 +476,7 @@ const pointerup = (event) => {
         }
     });
     getElement("optionsDifficulty").forEach(o => {
-        if (o === event.target) {
+        if (o === event.target && event.button === 0) {
             if (o.classList.contains("clicked") && !getStatus("start")) {
                 if (document.querySelector(".selected"))
                     document.querySelector(".selected").classList.remove("selected")
@@ -414,23 +496,24 @@ const pointerup = (event) => {
         console.log("start!!!");        
         startGame();
     }
-    if ((event.target === getElement("gameReset") && event.target.classList.contains("clicked"))) {
+    if ((event.target === getElement("gameReset") && event.target.classList.contains("clicked")) && event.button === 0) {
         console.log("reset!!!");
         resetGame();
     }
     if (getElement("gameReset").classList.contains("clicked")) getElement("gameReset").classList.remove("clicked");
     actions.gridpointerdown = false;
     actions.topiconpointerdown = false;
+    buttonsClickedOnGrid.button0 = false;
+    buttonsClickedOnGrid.button1 = false;
+    buttonsClickedOnGrid.button2 = false;
 }
 
-
-gameSettings("level", "intermediate");
-changeGridDimensions();
-generateCells();
+firstInit();
 
 getElement("grid").addEventListener("pointerdown", pointerdownOnGrid);
 getElement("gameStart").addEventListener("pointerdown", pointerdownOnStart);
 getElement("gameReset").addEventListener("pointerdown", pointerdownOnReset);
+getElement("optionsDifficulty").forEach(o => o.addEventListener("pointerdown", pointerdownOnOption));
 document.body.addEventListener("pointermove", pointermove);
 document.body.addEventListener("pointerup", pointerup);
-getElement("optionsDifficulty").forEach(o => o.addEventListener("pointerdown", pointerdownOnOption));
+document.addEventListener('contextmenu', event => event.preventDefault());
