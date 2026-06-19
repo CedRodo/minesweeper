@@ -1,0 +1,247 @@
+:root {
+    --colorgray1: #BDBDBD;
+    --colorgray2: #FFFFFF;
+    --colorgray3: #7B7B7B;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;    
+}
+
+body {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #313131;
+}
+
+.minesweeper-container {
+    width: 100%;
+    height: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.grid-container {
+    --cellsize: 32px;
+    --xcellsnb: 9;
+    --ycellsnb: 9;
+    --gridwith: calc(var(--cellsize) * var(--xcellsnb));
+    --gridheight: calc(var(--cellsize) * var(--ycellsnb));
+    --fillsize: 8px;
+    width: fit-content;
+    height: fit-content;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--fillsize);
+    background-color: var(--colorgray1);
+    border-style: solid;
+    border-width: calc(var(--cellsize) / 6);
+    border-left-color: var(--colorgray2);
+    border-top-color: var(--colorgray2);
+    border-right-color: var(--colorgray3);
+    border-bottom-color: var(--colorgray3);
+    user-select: none;
+}
+
+.top-container {
+    width: var(--gridwith);
+    height: 56px;
+    padding: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--colorgray1);
+    border-style: solid;
+    border-width: calc(var(--cellsize) / 7);
+    border-left-color: var(--colorgray3);
+    border-top-color: var(--colorgray3);
+    border-right-color: var(--colorgray2);
+    border-bottom-color: var(--colorgray2);
+}
+
+.game_info-container {
+    width: 78px;
+    height: 42px;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    grid-template-columns: repeat(3, 1fr);
+    background-color: #111827;
+    border-style: solid;
+    border-width: calc(var(--cellsize) / 12);
+    border-left-color: var(--colorgray3);
+    border-top-color: var(--colorgray3);
+    border-right-color: var(--colorgray2);
+    border-bottom-color: var(--colorgray2);
+}
+
+.game_info {
+    width: 100%;
+    height: 38px;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    font-family: "DS-DIGIB";
+    font-size: 48px;
+    color: #4b2323;
+    position: relative;
+}
+
+.game_info_number {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: red;
+}
+
+#game_start {
+    width: 40px;
+    height: 40px;
+    padding: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--colorgray1);
+    border-style: solid;
+    border-width: calc(var(--cellsize) / 8);
+    border-left-color: var(--colorgray2);
+    border-top-color: var(--colorgray2);
+    border-right-color: var(--colorgray3);
+    border-bottom-color: var(--colorgray3);
+}
+
+#game_start.clicked {
+    border-left-color: var(--colorgray3);
+    border-top-color: var(--colorgray3);
+    border-right-color: var(--colorgray2);
+    border-bottom-color: var(--colorgray2);
+}
+
+#game_start:hover {
+    cursor: pointer;
+    filter: brightness(105%);
+}
+
+.game_top_icon {
+    height: 100%;
+    object-fit: contain;
+}
+
+.grid {
+    width: var(--gridwith);
+    height: var(--gridheight);
+    display: grid;
+    grid-template-columns: repeat(var(--xcellsnb), 1fr);
+    grid-template-rows: repeat(var(--ycellsnb), 1fr);
+    background-color: var(--colorgray1);
+    border-style: solid;
+    border-width: calc(var(--cellsize) / 7);
+    border-left-color: var(--colorgray3);
+    border-top-color: var(--colorgray3);
+    border-right-color: var(--colorgray2);
+    border-bottom-color: var(--colorgray2);
+}
+
+.cell {
+    --iconurl: url("./assets/img/icons/");
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* background: var(--colorgray1); */
+    background: var(--colorgray1), var(--iconurl);
+    background: var(--iconurl), var(--colorgray1);
+    border-style: solid;
+    border-width: calc(var(--cellsize) / 8);
+    border-left-color: var(--colorgray2);
+    border-top-color: var(--colorgray2);
+    border-right-color: var(--colorgray3);
+    border-bottom-color: var(--colorgray3);
+    font-family: "mine-sweeper";
+    font-size: 20px;
+    position: relative;
+}
+
+.cell.mined {
+    --iconurl: url("./assets/img/icons/mine.png");
+    background-size: 90%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.cell:not([data-number=""])::before {
+    content: attr(data-number);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.cell[data-number="1"] {
+    color: #0000FF;
+}
+
+.cell[data-number="2"] {
+    color: #008000;
+}
+
+.cell[data-number="3"] {
+    color: #FF0000;
+}
+
+.cell[data-number="4"] {
+    color: #00008B;
+}
+
+.cell[data-number="5"] {
+    color: #FF1493;
+}
+
+.cell[data-number="6"] {
+    color: #00FFFF;
+}
+
+.cell[data-number="7"] {
+    color: #000000;
+}
+
+.cell[data-number="8"] {
+    color: #808080;
+}
+
+.cell.clicked, .cell.opened {
+    border-width: 1px;
+    border-left-color: var(--colorgray3);
+    border-top-color: var(--colorgray3);
+    border-right-color: var(--colorgray3);
+    border-bottom-color: var(--colorgray3);
+}
+
+.cell.clicked {
+    cursor: pointer;
+}
+
+.cell:hover {
+    cursor: pointer;
+}
+
+.started .cell:not(.clicked, .opened):hover {
+    filter: brightness(110%);
+}
