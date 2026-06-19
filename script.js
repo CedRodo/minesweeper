@@ -7,6 +7,8 @@ const elements = {
     timeNumber1: document.querySelector(".game_info_time_number_1"),
     timeNumber2: document.querySelector(".game_info_time_number_2"),
     timeNumber3: document.querySelector(".game_info_time_number_3"),
+    optionsDifficulty: document.querySelectorAll(".option_difficulty"),
+    gameReset: document.querySelector("#game_reset"),
     gameStart: document.querySelector("#game_start"),
     gameTopIcon: document.querySelector(".game_top_icon"),
     cells: () => {
@@ -62,6 +64,9 @@ const gameInfos = {
         start: false,
         pause: false,
         end: false
+    },
+    play: {
+        finish: ""
     }
 }
 
@@ -97,10 +102,29 @@ const setStatus = (status, boolean) => {
     gameInfos.status[status] = boolean;
 }
 
+const getPlay = (item) => {
+    if (gameInfos.play[item] === undefined)
+        throw new Error("Incorrect item given:", item);
+    return gameInfos.play[item];
+}
+
+const setPlay = (item, value) => {
+    if (gameInfos.play[item] === undefined)
+        throw new Error("Incorrect item given:", item);
+    gameInfos.play[item] = value;
+}
+
 const changeGridDimensions = () => {
     console.log("changeGridDimensions");    
     getElement("gridContainer").style.setProperty("--xcellsnb", gameInfos.grid.x);
     getElement("gridContainer").style.setProperty("--ycellsnb", gameInfos.grid.y);
+}
+
+const clearGrid = () => {
+    console.log("clearGrid");
+    while (getElement("grid").firstChild) {
+        getElement("grid").lastChild.remove();
+    }
 }
 
 const generateCells = () => {
@@ -108,9 +132,7 @@ const generateCells = () => {
     const x = gameInfos.grid.x;
     const y = gameInfos.grid.y;
 
-    while (getElement("grid").firstChild) {
-        getElement("grid").lastChild.remove();
-    }
+    clearGrid();
 
     for (let h = 0; h < y; h++) {
         for (let w = 0; w < x; w++) {
@@ -138,7 +160,7 @@ const timeToDisplay = (duration) => {
 
 const displayTimeInfo = () => {
     const TIME_TO_DISPLAY = timeToDisplay(gameInfos.time.get()).toString();
-    console.log("TIME_TO_DISPLAY:", TIME_TO_DISPLAY);    
+    // console.log("TIME_TO_DISPLAY:", TIME_TO_DISPLAY);    
     const TIME_TO_DISPLAY_NUMBERS_ARRAY = TIME_TO_DISPLAY.split("");
     // console.log("TIME_TO_DISPLAY_NUMBERS_ARRAY:", TIME_TO_DISPLAY_NUMBERS_ARRAY);
     TIME_TO_DISPLAY_NUMBERS_ARRAY.forEach((n, index) => {
@@ -222,7 +244,7 @@ const checkHintsAndMines = (cell) => {
         } else {
             cell.setAttribute("data-number", "");
             cell.classList.add("mined");
-            endGame();
+            endGame("lose");
         }
     }
 }
@@ -233,9 +255,9 @@ const countingTime = () => {
     let loop;
     const timeLoop = () => {
         gameInfos.time.current = Date.now();
-        // console.log("gameInfos.time.get():", gameInfos.time.get());        
+        console.log("gameInfos.time.get():", gameInfos.time.get());        
         if (gameInfos.time.get() >= 999000) {
-            endGame();
+            endGame("lose");
         }
         if (getStatus("pause") || getStatus("end")) {
             cancelAnimationFrame(loop);
@@ -261,20 +283,40 @@ const initialize = () => {
     displayTimeInfo();
 }
 
+const reset = () => {
+    for (let i = 1; i <= 3; i++) {
+        getElement(`timeNumber${i}`).textContent = "";
+        getElement(`minesNumber${i}`).textContent = "";
+    }
+}
+
+const resetGame = () => {
+    console.log("resetGame");
+    const willReset = confirm("Do you to reset the game?");
+    if (!willReset) return;
+    document.querySelector(".selected").classList.remove("selected");
+    endGame();
+    setTimeout(() => { reset(); }, 100);
+}
+
 const startGame = () => {
     console.log("startGame");
     initialize();
-    countingTime();
     setStatus("start", true);
     setStatus("end", false);
+    setPlay("finish", "");
+    getElement("gridContainer").classList.add("started");
+    countingTime();
     getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
 }
 
-const endGame = () => {
+const endGame = (finish) => {
     console.log("endGame");
     setStatus("end", true);
     setStatus("start", false);
-    getElement("gameTopIcon").src = `./${getIconUrl("lose")}`;
+    if (finish) setPlay("finish", finish);
+    getElement("gridContainer").classList.remove("started");
+    if (finish) getElement("gameTopIcon").src = `./${getIconUrl(finish)}`;
 }
 
 const gameSettings = (type, value) => {
@@ -309,10 +351,18 @@ const pointermove = (event) => {
             if (c.classList.contains("clicked")) c.classList.remove("clicked");
         }
     });
+    getElement("optionsDifficulty").forEach(o => {
+        if (o !== event.target) {
+            if (o.classList.contains("clicked")) o.classList.remove("clicked");
+        }
+    });
     if (event.target === getElement("gameStart") || event.target === getElement("gameTopIcon")) {
         if (!getElement("gameStart").classList.contains("clicked") && actions.topiconpointerdown) getElement("gameStart").classList.add("clicked");
     } else {
         if (getElement("gameStart").classList.contains("clicked")) getElement("gameStart").classList.remove("clicked");
+    }
+    if (event.target !== getElement("gameReset")) {
+        if (getElement("gameReset").classList.contains("clicked")) getElement("gameReset").classList.remove("clicked");
     }
 }
 
@@ -320,6 +370,16 @@ const pointerdownOnStart = (event) => {
     console.log("pointerdownOnStart event.target:", event.target);
     actions.topiconpointerdown = true;
     if (!getElement("gameStart").classList.contains("clicked")) getElement("gameStart").classList.add("clicked");
+}
+
+const pointerdownOnReset = (event) => {
+    console.log("pointerdownOnReset event.target:", event.target);
+    if (!event.currentTarget.classList.contains("clicked")) event.currentTarget.classList.add("clicked");
+}
+
+const pointerdownOnOption = (event) => {
+    console.log("pointerdownOnOption event.target:", event.target);
+    if (!event.target.classList.contains("clicked") && !getStatus("start")) event.target.classList.add("clicked");
 }
 
 const pointerup = (event) => {
@@ -333,13 +393,32 @@ const pointerup = (event) => {
             }
         }
     });
+    getElement("optionsDifficulty").forEach(o => {
+        if (o === event.target) {
+            if (o.classList.contains("clicked") && !getStatus("start")) {
+                if (document.querySelector(".selected"))
+                    document.querySelector(".selected").classList.remove("selected")
+                o.classList.add("selected");
+                const type = o.dataset.type;
+                const level = o.dataset[type];
+                gameSettings(type, level);
+                changeGridDimensions();
+                generateCells();
+            }
+        }
+        if (o.classList.contains("clicked")) o.classList.remove("clicked");
+    });
     if (!getStatus("end")) getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
     if (getElement("gameStart").classList.contains("clicked")) getElement("gameStart").classList.remove("clicked");
     if ((event.target === getElement("gameStart") || event.target === getElement("gameTopIcon")) && actions.topiconpointerdown) {
         console.log("start!!!");        
-        getElement("gameStart").classList.add("started");
         startGame();
     }
+    if ((event.target === getElement("gameReset") && event.target.classList.contains("clicked"))) {
+        console.log("reset!!!");
+        resetGame();
+    }
+    if (getElement("gameReset").classList.contains("clicked")) getElement("gameReset").classList.remove("clicked");
     actions.gridpointerdown = false;
     actions.topiconpointerdown = false;
 }
@@ -351,5 +430,7 @@ generateCells();
 
 getElement("grid").addEventListener("pointerdown", pointerdownOnGrid);
 getElement("gameStart").addEventListener("pointerdown", pointerdownOnStart);
+getElement("gameReset").addEventListener("pointerdown", pointerdownOnReset);
 document.body.addEventListener("pointermove", pointermove);
 document.body.addEventListener("pointerup", pointerup);
+getElement("optionsDifficulty").forEach(o => o.addEventListener("pointerdown", pointerdownOnOption));
