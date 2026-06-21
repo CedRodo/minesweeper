@@ -1,0 +1,96 @@
+:root {
+    --colorgray1: #BDBDBD;
+    --colorgray2: #FFFFFF;
+    --colorgray3: #7B7B7B;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    padding-top: 65px;
+    gap: 30px;
+}
+
+.game_options-container {
+    height: 50px;
+}
+
+.game_option {
+    padding: 5px;
+    gap: 20px;
+}
+
+.option_difficulty {
+    width: 90px;
+    font-size: 12px;
+}
+
+.option_difficulty:is(.clicked, .selected) {
+    padding-top: 1px;
+    padding-left: 2px;
+}
+
+.game_reset-container {
+    height: 50px;
+    padding: 4px;
+}
+
+#game_reset {
+    width: 90px;
+    font-size: 12px;
+}
+
+#game_reset.clicked {
+    padding-top: 1px;
+    padding-left: 2px;
+}
+
+.minesweeper-container {
+    height: 400px;
+}
+
+.minesweeper-container.scroll {
+    padding: 12px;
+    justify-content: start;
+
+}
+
+.grid-container {
+    --cellsize: 20px;
+    --fillsize: 8px;
+    padding: 4px;
+}
+
+.top-container {
+    height: 37px;
+    padding: 3px;
+}
+
+.game_info-container {
+    width: 52px;
+    height: 29px;
+}
+
+.game_info {
+    height: 26px;
+    font-size: 33px;
+}
+
+#game_start {
+    width: auto;
+    height: 28px;
+    aspect-ratio: 1;
+    padding: 3px;
+}
+
+.cell {
+    font-size: 14px;
+}
+
+.cell.flagged.misplaced::after {
+    font-size: 18px;
+}

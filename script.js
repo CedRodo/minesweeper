@@ -1,4 +1,5 @@
 const elements = {
+    minesweeperContainer: document.querySelector(".minesweeper-container"),
     gridContainer: document.querySelector(".grid-container"),
     grid: document.querySelector(".grid"),
     minesNumber1: document.querySelector(".game_info_mines_number_1"),
@@ -144,6 +145,12 @@ const changeGridDimensions = () => {
     console.log("changeGridDimensions");    
     getElement("gridContainer").style.setProperty("--xcellsnb", gameInfos.grid.x);
     getElement("gridContainer").style.setProperty("--ycellsnb", gameInfos.grid.y);
+    if (gameInfos.grid.x > 16) {
+        getElement("minesweeperContainer").classList.add("scroll");
+    } else {
+        if (getElement("minesweeperContainer").classList.contains("scroll"))
+            getElement("minesweeperContainer").classList.remove("scroll");
+    }
 }
 
 const clearGrid = () => {
@@ -479,6 +486,7 @@ const initialize = (full = true) => {
     gameInfos.time.starting = 0;
     flagsPositions.length = 0;
     minesPositions.length = 0;
+    getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
     generateCells();
     if (!full) return;
     setMinesPositions();
@@ -501,7 +509,6 @@ const resetGame = () => {
     document.querySelector(".selected").classList.remove("selected");
     endGame();
     initialize(false);
-    getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
     document.querySelector(`.option_difficulty_${gameInfos.level}`).classList.add("selected");
     setTimeout(() => { clearGameInfos(); }, 100);
 }

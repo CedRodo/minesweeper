@@ -11,7 +11,7 @@
 }
 
 body {
-    width: 100%;
+    width: 100vw;
     height: 100vh;
     padding-top: 40px;
     display: flex;
@@ -21,6 +21,7 @@ body {
     gap: 50px;
     background: #313131;
     background: linear-gradient(90deg, deepskyblue, #9adff5, deepskyblue);
+    overflow: hidden;
 }
 
 .game_options-container {
