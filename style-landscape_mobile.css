@@ -1,0 +1,44 @@
+body {
+    padding-top: 30px;
+    gap: 32px;
+    overflow-y: scroll;
+}
+
+.game_options-container {
+    height: 50px;
+}
+
+.game_option {
+    gap: 16px;
+}
+
+.option_difficulty {
+    width: 150px;
+    font-size: 18px;
+}
+
+.game_reset-container {
+    height: 50px;
+}
+
+#game_reset {
+    width: 120px;
+    font-size: 18px;
+}
+
+.minesweeper-container.scroll {
+    padding: 0;
+    justify-content: center;
+}
+
+.grid-container {
+    --cellsize: 24px;
+}
+
+.cell {
+    font-size: 17px;
+}
+
+.cell.flagged.misplaced::after {
+    font-size: 14px;
+}

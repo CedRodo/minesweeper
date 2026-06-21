@@ -19,7 +19,12 @@ const elements = {
 
 const actions = {
     gridpointerdown: false,
-    topiconpointerdown: false
+    topiconpointerdown: false,
+    touchdown: false,
+    longtouch: true,
+    touchtarget: null,
+    touchdowntimestart: 0,
+    touchdowntimeend: 0
 }
 
 const buttonsClickedOnGrid = {
@@ -84,6 +89,7 @@ const minesPositions = [];
 const flagsPositions = [];
 const openedCellsPositions = [];
 const gridHintsAndMines = [];
+let touchTimeout;
 const iconsList = ["click", "confident", "heavysleep", "lose", "expert", "sleep", "start", "win", "flag", "mine"];
 
 const getIconUrl = (icon) => {
@@ -283,8 +289,8 @@ const checkHintsAndMines = (cell) => {
 const checkIfWin = () => {
     console.log("checkIfWin");
     let isWin = false;
-    console.log("getAllOpenedNotMinedCells():", getAllOpenedNotMinedCells());
-    console.log("(gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb):", (gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb));    
+    // console.log("getAllOpenedNotMinedCells():", getAllOpenedNotMinedCells());
+    // console.log("(gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb):", (gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb));    
     const hasCorrectNumberOfOpenedCells = getAllOpenedNotMinedCells() === (gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb);
     let hasFlagPlacedCorrectly = true;
     if (flagsPositions.length > 0) flagsPositions.forEach(fp => {
@@ -292,8 +298,8 @@ const checkIfWin = () => {
         // console.log("isPresent:", isPresent);        
         if (isPresent === undefined) hasFlagPlacedCorrectly = false;
     });
-    console.log("hasCorrectNumberOfOpenedCells:", hasCorrectNumberOfOpenedCells);    
-    console.log("hasFlagPlacedCorrectly:", hasFlagPlacedCorrectly);    
+    // console.log("hasCorrectNumberOfOpenedCells:", hasCorrectNumberOfOpenedCells);    
+    // console.log("hasFlagPlacedCorrectly:", hasFlagPlacedCorrectly);    
     return hasCorrectNumberOfOpenedCells && hasFlagPlacedCorrectly;
 }
 
@@ -319,13 +325,15 @@ const countingTime = () => {
 
 const addOpenCell = (position) => {
     console.log("addOpenCell position:", position);
+    console.log("classList opened:", getCell(position).classList.contains("opened"));
     const x = parseInt(position.x);
     const y = parseInt(position.y);
-    openedCellsPositions.push([x, y]);
+    const isAlreadyPresent = checkIfCellAlreadyOpen(position);
+    if (!isAlreadyPresent) openedCellsPositions.push([x, y]);
 }
 
 const checkIfCellAlreadyOpen = (position) => {
-    console.log("checkIfCellAlreadyOpen position:", position);
+    // console.log("checkIfCellAlreadyOpen position:", position);
     const x = parseInt(position.x);
     const y = parseInt(position.y);
     let isAlreadyPresent = false;
@@ -336,9 +344,9 @@ const checkIfCellAlreadyOpen = (position) => {
 }
 
 const getAllOpenedNotMinedCells = () => {
-    console.log("getAllOpenedNotMinedCells");
+    // console.log("getAllOpenedNotMinedCells");
     const nb = Array.from(document.querySelectorAll(".cell.opened:not(.mined)")).length;
-    console.log("nb:", nb);
+    // console.log("nb:", nb);
     return nb;
 }
 
@@ -382,11 +390,15 @@ const checkCell = (position) => {
     const isMineIndex = minesPositions.findIndex(p =>
         p[0] === x && p[1] === y
     );
+    const isOpenIndex = openedCellsPositions.findIndex(p =>
+        p[0] === x && p[1] === y
+    );
     const isHint = gridHintsAndMines[y][x] > 0;
     const statuses = {
-        isFLag: isFlagIndex !== -1,
+        isFlag: isFlagIndex !== -1,
         isMine: isMineIndex !== -1,
-        isHint: isHint
+        isOpen: isOpenIndex !== -1,
+        isHint: isHint,
     }
     // console.log("statuses:", statuses);
     return statuses;
@@ -394,7 +406,7 @@ const checkCell = (position) => {
 
 const revealCell = (cell, first = false) => {
     // console.log("revealCell cell:", cell);
-    console.log("NOT FLAGGED!!!!");    
+    // console.log("NOT FLAGGED!!!!");    
     const position = { x: cell.dataset.x, y: cell.dataset.y };
     const statuses = checkCell(position);
     if (statuses.isFlag) return;
@@ -409,6 +421,7 @@ const revealCell = (cell, first = false) => {
         const value = gridHintsAndMines[position.y][position.x];
         cell.setAttribute("data-number", value);
         cell.classList.add("opened");
+        addOpenCell({ x: cell.dataset.x, y: cell.dataset.y });
         if (checkIfWin()) {
             endGame("win");
             return;
@@ -417,26 +430,51 @@ const revealCell = (cell, first = false) => {
     }
     if (!cell.classList.contains("opened")) {
     // if (!checkIfCellAlreadyOpen({ x: position.x, y: position.y })) {
-        addOpenCell({ x: cell.dataset.x, y: cell.dataset.y });
         cell.classList.add("opened");
+        addOpenCell({ x: cell.dataset.x, y: cell.dataset.y });
         const x = parseInt(position.x);
         const y = parseInt(position.y);
         if (checkIfWin()) {
             endGame("win");
             return;
         }
+        // console.log("||||||||||||||||||||************ COMPARE openedCellsPositions -> classList opened:", openedCellsPositions.length, "->", Array.from(document.querySelectorAll(".cell.opened")).length);  
+        // if (y - 1 >= 0) {
+        //     if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y - 1 }).isOpen) revealCell(getCell({ x: x - 1, y: y - 1 }));
+        //     if (!checkCell({ x: x, y: y - 1 }).isOpen) revealCell(getCell({ x: x, y: y - 1 }));
+        //     if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y - 1 }).isOpen) revealCell(getCell({ x: x + 1, y: y - 1 }));
+        // }
+        // if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y }).isOpen) revealCell(getCell({ x: x - 1, y: y }));
+        // if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y }).isOpen) revealCell(getCell({ x: x + 1, y: y }));
+        // if (y + 1 < gameInfos.grid.y) {
+        //     if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y + 1 }).isOpen) revealCell(getCell({ x: x - 1, y: y + 1 }));
+        //     if (!checkCell({ x: x, y: y + 1 }).isOpen) revealCell(getCell({ x: x, y: y + 1 }));
+        //     if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y + 1 }).isOpen) revealCell(getCell({ x: x + 1, y: y + 1 }));
+        // }
         if (y - 1 >= 0) {
-            if (x - 1 >= 0) revealCell(getCell({ x: x - 1, y: y - 1 }));
-            revealCell(getCell({ x: x, y: y - 1 }));
-            if (x + 1 < gameInfos.grid.x) revealCell(getCell({ x: x + 1, y: y - 1 }));
+            if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y - 1 }).isFlag && !checkCell({ x: x - 1, y: y - 1 }).isOpen) revealCell(getCell({ x: x - 1, y: y - 1 }));
+            if (!checkCell({ x: x, y: y - 1 }).isFlag && !checkCell({ x: x, y: y - 1 }).isOpen) revealCell(getCell({ x: x, y: y - 1 }));
+            if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y - 1 }).isFlag && !checkCell({ x: x + 1, y: y - 1 }).isOpen) revealCell(getCell({ x: x + 1, y: y - 1 }));
         }
-        if (x - 1 >= 0) revealCell(getCell({ x: x - 1, y: y }));
-        if (x + 1 < gameInfos.grid.x) revealCell(getCell({ x: x + 1, y: y }));
+        if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y }).isFlag && !checkCell({ x: x - 1, y: y }).isOpen) revealCell(getCell({ x: x - 1, y: y }));
+        if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y }).isFlag && !checkCell({ x: x + 1, y: y }).isOpen) revealCell(getCell({ x: x + 1, y: y }));
         if (y + 1 < gameInfos.grid.y) {
-            if (x - 1 >= 0) revealCell(getCell({ x: x - 1, y: y + 1 }));
-            revealCell(getCell({ x: x, y: y + 1 }));
-            if (x + 1 < gameInfos.grid.x) revealCell(getCell({ x: x + 1, y: y + 1 }));
-        };
+            if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y + 1 }).isFlag && !checkCell({ x: x - 1, y: y + 1 }).isOpen) revealCell(getCell({ x: x - 1, y: y + 1 }));
+            if (!checkCell({ x: x, y: y + 1 }).isFlag && !checkCell({ x: x, y: y + 1 }).isOpen) revealCell(getCell({ x: x, y: y + 1 }));
+            if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y + 1 }).isFlag && !checkCell({ x: x + 1, y: y + 1 }).isOpen) revealCell(getCell({ x: x + 1, y: y + 1 }));
+        }
+        // if (y - 1 >= 0) {
+        //     if (x - 1 >= 0 && !getCell({ x: x - 1, y: y - 1 }).classList.contains("opened")) revealCell(getCell({ x: x - 1, y: y - 1 }));
+        //     if (!getCell({ x: x, y: y - 1 }).classList.contains("opened")) revealCell(getCell({ x: x, y: y - 1 }));
+        //     if (x + 1 < gameInfos.grid.x && !getCell({ x: x + 1, y: y - 1 }).classList.contains("opened")) revealCell(getCell({ x: x + 1, y: y - 1 }));
+        // }
+        // if (x - 1 >= 0 && !getCell({ x: x - 1, y: y }).classList.contains("opened")) revealCell(getCell({ x: x - 1, y: y }));
+        // if (x + 1 < gameInfos.grid.x && !getCell({ x: x + 1, y: y }).classList.contains("opened")) revealCell(getCell({ x: x + 1, y: y }));
+        // if (y + 1 < gameInfos.grid.y) {
+        //     if (x - 1 >= 0 && !getCell({ x: x - 1, y: y + 1 }).classList.contains("opened")) revealCell(getCell({ x: x - 1, y: y + 1 }));
+        //     if (!getCell({ x: x, y: y + 1 }).classList.contains("opened")) revealCell(getCell({ x: x, y: y + 1 }));
+        //     if (x + 1 < gameInfos.grid.x && !getCell({ x: x + 1, y: y + 1 }).classList.contains("opened")) revealCell(getCell({ x: x + 1, y: y + 1 }));
+        // }
     }
 }
 
@@ -474,18 +512,50 @@ const checkForMisplacedFlags = () => {
     });
 }
 
+const touchdownCountdown = (cell) => {
+    console.log("touchdownCountdown cell:", cell);
+    actions.touchdown = true;
+    actions.touchtarget = cell;
+    touchTimeout = setTimeout(() => {
+        clearTimeout(touchTimeout);
+        if (actions.touchtarget === cell) {
+            if (!cell.classList.contains("flagged")) {
+                cell.classList.add("flagged");
+                addFlag({ x: cell.dataset.x, y: cell.dataset.y });
+            } else {
+                cell.classList.remove("flagged");
+                removeFlag({ x: cell.dataset.x, y: cell.dataset.y });
+            }
+        }
+        actions.touchdown = false;
+        actions.touchtarget = null;
+        actions.longtouch = true;
+    }, 1000);
+}
+
+const touchdownRelease = () => {
+    console.log("touchdownRelease");
+    actions.touchdown = false;
+    actions.longtouch = false;
+    actions.touchtarget = null;
+    clearTimeout(touchTimeout);
+}
+
 const initialize = (full = true) => {
     minesPositions.length = 0;
+    flagsPositions.length = 0;
+    openedCellsPositions.length = 0;
     gridHintsAndMines.length = 0;
     actions.gridpointerdown = false;
+    actions.touchdown = false;
+    actions.longtouch = false;
+    actions.touchtarget = null;
     actions.topiconpointerdown = false;
     gameInfos.grid.cellsOpened = 0;
     gameInfos.grid.flagsPlaced = 0;
     gameInfos.grid.flagsAutoRevealed = 0;
     gameInfos.time.current = 0;
     gameInfos.time.starting = 0;
-    flagsPositions.length = 0;
-    minesPositions.length = 0;
     getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
     generateCells();
     if (!full) return;
@@ -565,6 +635,12 @@ const pointerdownOnGrid = (event) => {
             getElement("gameTopIcon").src = `./${getIconUrl("click")}`;
             getElement("cells").forEach(c => {
                 if (c === event.target && getStatus("start")) {
+                    console.log("event.pointerType:", event.pointerType);
+                    if (event.pointerType === "touch") {
+                        touchdownCountdown(c);
+                        return;
+                    }
+                    // if (event.pointerType === "touch") actions.touchdowntimestart = Date.now();
                     if (!(c.classList.contains("clicked") || c.classList.contains("flagged") || c.classList.contains("opened"))) c.classList.add("clicked");
                 } else {
                     if (c.classList.contains("clicked")) c.classList.remove("clicked");
@@ -595,20 +671,22 @@ const pointerdownOnGrid = (event) => {
 
 const pointermove = (event) => {
     // console.log("pointermove event.target:", event.target);
-    getElement("cells").forEach(c => {
-        if (c === event.target) {
-            if (!(c.classList.contains("clicked") ||
-                c.classList.contains("opened") ||
-                c.classList.contains("flagged")) &&
-                getStatus("start") &&
-                actions.gridpointerdown &&
-                buttonsClickedOnGrid.button0
-            )
-                c.classList.add("clicked");
-        } else {
-            if (c.classList.contains("clicked")) c.classList.remove("clicked");
-        }
-    });
+    if (event.pointerType !== "touch") {
+        getElement("cells").forEach(c => {
+            if (c === event.target) {
+                if (!(c.classList.contains("clicked") ||
+                    c.classList.contains("opened") ||
+                    c.classList.contains("flagged")) &&
+                    getStatus("start") &&
+                    actions.gridpointerdown &&
+                    buttonsClickedOnGrid.button0
+                )
+                    c.classList.add("clicked");
+            } else {
+                if (c.classList.contains("clicked")) c.classList.remove("clicked");
+            }
+        });
+    }
     getElement("optionsDifficulty").forEach(o => {
         if (o !== event.target) {
             if (o.classList.contains("clicked")) o.classList.remove("clicked");
@@ -644,18 +722,23 @@ const pointerdownOnOption = (event) => {
 }
 
 const pointerup = (event) => {
-    // console.log("pointerup event.target:", event.target);   
+    // console.log("pointerup event.target:", event.target); 
     getElement("cells").forEach(c => {
         if (c.classList.contains("clicked")) c.classList.remove("clicked");
+        if (c === event.target && event.pointerType === "touch") {
+            console.log("isFlagged?", c.classList.contains("flagged"));            
+        }
         if (c === event.target &&
             !c.classList.contains("flagged") &&
             getStatus("start") &&
             actions.gridpointerdown &&
+            !actions.longtouch &&
             buttonsClickedOnGrid.button0
         ) {
             revealCell(c, true);
         }
     });
+    if (event.pointerType === "touch") touchdownRelease();
     getElement("optionsDifficulty").forEach(o => {
         if (o === event.target && event.button === 0) {
             if (o.classList.contains("clicked") && !getStatus("start")) {
@@ -666,7 +749,8 @@ const pointerup = (event) => {
                 const level = o.dataset[type];
                 gameSettings(type, level);
                 changeGridDimensions();
-                generateCells();
+                initialize();
+                // clearGameInfos();
             }
         }
         if (o.classList.contains("clicked")) o.classList.remove("clicked");

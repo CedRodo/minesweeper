@@ -22,7 +22,6 @@ body {
     background: #313131;
     background: linear-gradient(90deg, deepskyblue, #9adff5, deepskyblue);
     overflow: hidden;
-    overflow-y: scroll;
 }
 
 .game_options-container {
@@ -285,7 +284,7 @@ body {
     background-repeat: no-repeat;
 }
 
-.cell.flagged {
+.cell:not(.opened.mined).flagged {
     --iconurl: url("./assets/img/icons/flag.png");
     background-size: 90%;
     background-position: center;
@@ -365,6 +364,8 @@ body {
     cursor: pointer;
 }
 
-.started .cell:not(.clicked, .opened):hover {
-    filter: brightness(110%);
+@media (any-hover: hover) {
+    .started .cell:not(.clicked, .opened):hover {
+        filter: brightness(110%);
+    }
 }
