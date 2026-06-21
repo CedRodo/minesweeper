@@ -59,9 +59,11 @@ body {
     user-select: none;
 }
 
-.option_difficulty:hover {
-    cursor: pointer;
-    filter: brightness(110%);
+@media (any-hover: hover) {
+    .option_difficulty:hover {
+        cursor: pointer;
+        filter: brightness(110%);
+    }
 }
 
 .option_difficulty:is(.clicked, .selected) {
@@ -103,6 +105,13 @@ body {
 #game_reset:hover {
     cursor: pointer;
     filter: brightness(110%);
+}
+
+@media (any-hover: hover) {
+    #game_reset:hover {
+        cursor: pointer;
+        filter: brightness(110%);
+    }
 }
 
 #game_reset.clicked {
@@ -229,6 +238,13 @@ body {
 #game_start:hover {
     cursor: pointer;
     filter: brightness(105%);
+}
+
+@media (any-hover: hover) {
+    #game_start:hover {
+        cursor: pointer;
+        filter: brightness(105%);
+    }
 }
 
 .game_top_icon {
