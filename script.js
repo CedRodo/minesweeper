@@ -456,6 +456,17 @@ const revealAllFlags = () => {
     displayMinesInfo();
 }
 
+const checkForMisplacedFlags = () => {
+    console.log("checkForMisplacedFlags");
+    if (flagsPositions.length > 0) flagsPositions.forEach(fp => {
+        const isPresent = minesPositions.find(mp => mp[0] === fp[0] && mp[1] === fp[1]);
+        // console.log("isPresent:", isPresent);        
+        if (isPresent === undefined) {
+            getCell({ x: fp[0], y: fp[1] }).classList.add("misplaced");
+        }
+    });
+}
+
 const initialize = (full = true) => {
     minesPositions.length = 0;
     gridHintsAndMines.length = 0;
@@ -514,7 +525,10 @@ const endGame = (finish) => {
     if (finish) {
         setPlay("finish", finish);
         getElement("gameTopIcon").src = `./${getIconUrl(finish)}`;
-        if (finish === "lose") revealAllMines();
+        if (finish === "lose") {
+            revealAllMines();
+            checkForMisplacedFlags();
+        }
         if (finish === "win") revealAllFlags();
     }
 }
