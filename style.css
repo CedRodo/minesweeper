@@ -22,6 +22,7 @@ body {
     background: #313131;
     background: linear-gradient(90deg, deepskyblue, #9adff5, deepskyblue);
     overflow: hidden;
+    overflow-y: scroll;
 }
 
 .game_options-container {
