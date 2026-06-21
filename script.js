@@ -41,7 +41,8 @@ const gameInfos = {
         minesNb: 10,
         flagsPlaced: 0,
         flagsAutoRevealed: 0,
-        cellsOpened: 0
+        cellsOpened: 0,
+        firstClickPosition: { x: null, y: null }
     },
     setGridDetails: function() {
         switch (this.level) {
@@ -82,7 +83,8 @@ const gameInfos = {
     },
     play: {
         finish: ""
-    }
+    },
+    lastTimeClick: 0
 }
 
 const minesPositions = [];
@@ -90,7 +92,25 @@ const flagsPositions = [];
 const openedCellsPositions = [];
 const gridHintsAndMines = [];
 let touchTimeout;
-const iconsList = ["click", "confident", "heavysleep", "lose", "expert", "sleep", "start", "win", "flag", "mine"];
+const iconsList = [
+    "click",
+    "confident",
+    "deepsleep",
+    "expert",
+    "flag",
+    "heavysleep",
+    "illogic",
+    "lose",
+    "mine",
+    "sleep",
+    "start",
+    "win",
+    "waiting",
+    "worryish",
+    "worried",
+    "worrier",
+    "worriest"
+];
 
 const getIconUrl = (icon) => {
     if (!iconsList.includes(icon))
@@ -223,13 +243,22 @@ const displayMinesInfo = () => {
 }
 
 const setMinesPositions = () => {
-    console.log("setMinesPositions");    
+    console.log("setMinesPositions");
+    const fCPx = parseInt(gameInfos.grid.firstClickPosition.x);
+    const fCPy = parseInt(gameInfos.grid.firstClickPosition.y);
+    if (fCPx === null ||
+        fCPy === null) {
+        throw new Error("MIssing firstClickPosition full position");
+    }
     // minesPositions.push([Math.floor(Math.random() * gameInfos.grid.x), Math.floor(Math.random() * gameInfos.grid.y)]);
     while (minesPositions.length < gameInfos.grid.minesNb) {
         const x = Math.floor(Math.random() * gameInfos.grid.x);
         const y = Math.floor(Math.random() * gameInfos.grid.y);
         const isAlreadyPresent = minesPositions.find(p => p[0] === x && p[1] === y);
-        if (isAlreadyPresent === undefined) minesPositions.push([x, y]);
+        console.log("isAlreadyPresent/x -> fCPx/y -> fCPy:", isAlreadyPresent, "/", x,"->",fCPx,"/", y,"->",fCPy);
+        console.log("isAlreadyPresent === undefined && !((x === fCPx) && (y === fCPy)):", isAlreadyPresent === undefined && !((x === fCPx) && (y === fCPy)));        
+        if (isAlreadyPresent === undefined && !((x === fCPx) && (y === fCPy)))
+            minesPositions.push([x, y]);
     }
     // console.log("minesPositions:", minesPositions);    
 }
@@ -289,7 +318,7 @@ const checkHintsAndMines = (cell) => {
 const checkIfWin = () => {
     console.log("checkIfWin");
     let isWin = false;
-    // console.log("getAllOpenedNotMinedCells():", getAllOpenedNotMinedCells());
+    console.log("checkIfWin getAllOpenedNotMinedCells():", getAllOpenedNotMinedCells());
     // console.log("(gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb):", (gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb));    
     const hasCorrectNumberOfOpenedCells = getAllOpenedNotMinedCells() === (gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb);
     let hasFlagPlacedCorrectly = true;
@@ -298,17 +327,45 @@ const checkIfWin = () => {
         // console.log("isPresent:", isPresent);        
         if (isPresent === undefined) hasFlagPlacedCorrectly = false;
     });
-    // console.log("hasCorrectNumberOfOpenedCells:", hasCorrectNumberOfOpenedCells);    
-    // console.log("hasFlagPlacedCorrectly:", hasFlagPlacedCorrectly);    
+    console.log("hasCorrectNumberOfOpenedCells:", hasCorrectNumberOfOpenedCells);    
+    console.log("hasFlagPlacedCorrectly:", hasFlagPlacedCorrectly);    
     return hasCorrectNumberOfOpenedCells && hasFlagPlacedCorrectly;
 }
 
 const countingTime = () => {
     console.log("countingTime");
-    if (gameInfos.time.starting === 0) gameInfos.time.starting = Date.now();
+    if (gameInfos.time.starting === 0) {
+        gameInfos.time.starting = Date.now();
+        gameInfos.lastTimeClick = gameInfos.time.starting;
+    }
     let loop;
     const timeLoop = () => {
         gameInfos.time.current = Date.now();
+        if (getElement("gameTopIcon").src !== `./${getIconUrl("start")}`) getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
+        if (gameInfos.time.current - gameInfos.lastTimeClick >= 50000) {
+            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("sleep")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("sleep")}`;
+        }
+        if (gameInfos.time.current - gameInfos.lastTimeClick >= 100000) {
+            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("deepsleep")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("deepsleep")}`;
+        }
+        if (gameInfos.time.current - gameInfos.lastTimeClick >= 150000) {
+            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("heavysleep")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("heavysleep")}`;
+        }
+        if (gameInfos.time.current - gameInfos.time.starting >= 500000) {
+            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worryish")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worryish")}`;
+        }
+        if (gameInfos.time.current - gameInfos.time.starting >= 600000) {
+            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worried")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worried")}`;
+        }
+        if (gameInfos.time.current - gameInfos.time.starting >= 700000) {
+            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worrier")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worrier")}`;
+        }
+        if (gameInfos.time.current - gameInfos.time.starting >= 800000) {
+            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worriest")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worriest")}`;
+        }
+        if (gameInfos.grid.flagsPlaced > gameInfos.grid.minesNb) {
+            if (getElement("gameTopIcon").src !== `./${getIconUrl("illogic")}`) getElement("gameTopIcon").src = `./${getIconUrl("illogic")}`;
+        }
         // console.log("gameInfos.time.get():", gameInfos.time.get());        
         if (gameInfos.time.get() >= 999000) {
             endGame("lose");
@@ -344,9 +401,9 @@ const checkIfCellAlreadyOpen = (position) => {
 }
 
 const getAllOpenedNotMinedCells = () => {
-    // console.log("getAllOpenedNotMinedCells");
+    console.log("getAllOpenedNotMinedCells");
     const nb = Array.from(document.querySelectorAll(".cell.opened:not(.mined)")).length;
-    // console.log("nb:", nb);
+    console.log("nb:", nb);
     return nb;
 }
 
@@ -438,19 +495,6 @@ const revealCell = (cell, first = false) => {
             endGame("win");
             return;
         }
-        // console.log("||||||||||||||||||||************ COMPARE openedCellsPositions -> classList opened:", openedCellsPositions.length, "->", Array.from(document.querySelectorAll(".cell.opened")).length);  
-        // if (y - 1 >= 0) {
-        //     if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y - 1 }).isOpen) revealCell(getCell({ x: x - 1, y: y - 1 }));
-        //     if (!checkCell({ x: x, y: y - 1 }).isOpen) revealCell(getCell({ x: x, y: y - 1 }));
-        //     if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y - 1 }).isOpen) revealCell(getCell({ x: x + 1, y: y - 1 }));
-        // }
-        // if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y }).isOpen) revealCell(getCell({ x: x - 1, y: y }));
-        // if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y }).isOpen) revealCell(getCell({ x: x + 1, y: y }));
-        // if (y + 1 < gameInfos.grid.y) {
-        //     if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y + 1 }).isOpen) revealCell(getCell({ x: x - 1, y: y + 1 }));
-        //     if (!checkCell({ x: x, y: y + 1 }).isOpen) revealCell(getCell({ x: x, y: y + 1 }));
-        //     if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y + 1 }).isOpen) revealCell(getCell({ x: x + 1, y: y + 1 }));
-        // }
         if (y - 1 >= 0) {
             if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y - 1 }).isFlag && !checkCell({ x: x - 1, y: y - 1 }).isOpen) revealCell(getCell({ x: x - 1, y: y - 1 }));
             if (!checkCell({ x: x, y: y - 1 }).isFlag && !checkCell({ x: x, y: y - 1 }).isOpen) revealCell(getCell({ x: x, y: y - 1 }));
@@ -463,18 +507,6 @@ const revealCell = (cell, first = false) => {
             if (!checkCell({ x: x, y: y + 1 }).isFlag && !checkCell({ x: x, y: y + 1 }).isOpen) revealCell(getCell({ x: x, y: y + 1 }));
             if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y + 1 }).isFlag && !checkCell({ x: x + 1, y: y + 1 }).isOpen) revealCell(getCell({ x: x + 1, y: y + 1 }));
         }
-        // if (y - 1 >= 0) {
-        //     if (x - 1 >= 0 && !getCell({ x: x - 1, y: y - 1 }).classList.contains("opened")) revealCell(getCell({ x: x - 1, y: y - 1 }));
-        //     if (!getCell({ x: x, y: y - 1 }).classList.contains("opened")) revealCell(getCell({ x: x, y: y - 1 }));
-        //     if (x + 1 < gameInfos.grid.x && !getCell({ x: x + 1, y: y - 1 }).classList.contains("opened")) revealCell(getCell({ x: x + 1, y: y - 1 }));
-        // }
-        // if (x - 1 >= 0 && !getCell({ x: x - 1, y: y }).classList.contains("opened")) revealCell(getCell({ x: x - 1, y: y }));
-        // if (x + 1 < gameInfos.grid.x && !getCell({ x: x + 1, y: y }).classList.contains("opened")) revealCell(getCell({ x: x + 1, y: y }));
-        // if (y + 1 < gameInfos.grid.y) {
-        //     if (x - 1 >= 0 && !getCell({ x: x - 1, y: y + 1 }).classList.contains("opened")) revealCell(getCell({ x: x - 1, y: y + 1 }));
-        //     if (!getCell({ x: x, y: y + 1 }).classList.contains("opened")) revealCell(getCell({ x: x, y: y + 1 }));
-        //     if (x + 1 < gameInfos.grid.x && !getCell({ x: x + 1, y: y + 1 }).classList.contains("opened")) revealCell(getCell({ x: x + 1, y: y + 1 }));
-        // }
     }
 }
 
@@ -554,15 +586,22 @@ const initialize = (full = true) => {
     gameInfos.grid.cellsOpened = 0;
     gameInfos.grid.flagsPlaced = 0;
     gameInfos.grid.flagsAutoRevealed = 0;
+    gameInfos.grid.firstClickPosition.x = null;
+    gameInfos.grid.firstClickPosition.y = null;
     gameInfos.time.current = 0;
     gameInfos.time.starting = 0;
-    getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
+    gameInfos.lastTimeClick = 0;
+    getElement("gameTopIcon").src = `./${getIconUrl("waiting")}`;
     generateCells();
     if (!full) return;
-    setMinesPositions();
-    generateGridHintsAndMines();
     displayMinesInfo();
     displayTimeInfo();
+}
+
+const firstClick = () => {
+    console.log("firstClick");
+    setMinesPositions();
+    generateGridHintsAndMines();
 }
 
 const clearGameInfos = () => {
@@ -580,7 +619,10 @@ const resetGame = () => {
     endGame();
     initialize(false);
     document.querySelector(`.option_difficulty_${gameInfos.level}`).classList.add("selected");
-    setTimeout(() => { clearGameInfos(); }, 100);
+    setTimeout(() => {
+        clearGameInfos();
+        getElement("gameTopIcon").src = `./${getIconUrl("waiting")}`;
+    }, 10);
 }
 
 const startGame = () => {
@@ -646,6 +688,7 @@ const pointerdownOnGrid = (event) => {
                     if (c.classList.contains("clicked")) c.classList.remove("clicked");
                 }
             });
+            gameInfos.lastTimeClick = gameInfos.time.current;
         } else if (event.button === 2) {
             getElement("gameTopIcon").src = `./${getIconUrl("confident")}`;
             getElement("cells").forEach(c => {
@@ -663,6 +706,7 @@ const pointerdownOnGrid = (event) => {
                     if (c.classList.contains("clicked")) c.classList.remove("clicked");
                 }
             });
+            gameInfos.lastTimeClick = gameInfos.time.current;
         } else {
             actions.gridpointerdown = false;
         }
@@ -725,9 +769,6 @@ const pointerup = (event) => {
     // console.log("pointerup event.target:", event.target); 
     getElement("cells").forEach(c => {
         if (c.classList.contains("clicked")) c.classList.remove("clicked");
-        if (c === event.target && event.pointerType === "touch") {
-            console.log("isFlagged?", c.classList.contains("flagged"));            
-        }
         if (c === event.target &&
             !c.classList.contains("flagged") &&
             getStatus("start") &&
@@ -735,6 +776,12 @@ const pointerup = (event) => {
             !actions.longtouch &&
             buttonsClickedOnGrid.button0
         ) {
+            if (gameInfos.grid.firstClickPosition.x === null ||
+                gameInfos.grid.firstClickPosition.y === null) {
+                gameInfos.grid.firstClickPosition.x = c.dataset.x;
+                gameInfos.grid.firstClickPosition.y = c.dataset.y;
+                firstClick();
+            }
             revealCell(c, true);
         }
     });
