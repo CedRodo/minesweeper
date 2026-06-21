@@ -32,10 +32,7 @@ const gameInfos = {
     grid: {
         x: 9,
         y: 9,
-        minesNb: 10,
-        flagsPlaced: 0,
-        flagsAutoRevealed: 0,
-        cellsOpened: 0
+        minesNb: 10
     },
     setGridDetails: function() {
         switch (this.level) {
@@ -81,7 +78,6 @@ const gameInfos = {
 
 const minesPositions = [];
 const flagsPositions = [];
-const openedCellsPositions = [];
 const gridHintsAndMines = [];
 const iconsList = ["click", "confident", "heavysleep", "lose", "expert", "sleep", "start", "win", "flag", "mine"];
 
@@ -102,7 +98,7 @@ const getElement = (element) => {
 }
 
 const getCell = (position) => { 
-    // console.log("getCell position:", position);
+    console.log("getCell position:", position);
     const x = parseInt(position.x);
     const y = parseInt(position.y);
     const cell = Array.from(getElement("cells")).find(c => {
@@ -112,7 +108,7 @@ const getCell = (position) => {
         if (parseInt(c.dataset.x) === x && parseInt(c.dataset.y) === y)
             return c
     });
-    // console.log("cell:", cell);    
+    console.log("cell:", cell);    
     return cell;
 }
 
@@ -196,8 +192,7 @@ const displayTimeInfo = () => {
 }
 
 const displayMinesInfo = () => {
-    const nb = gameInfos.grid.minesNb - (gameInfos.grid.flagsPlaced + gameInfos.grid.flagsAutoRevealed);
-    const MINES_TO_DISPLAY_NUMBERS_ARRAY = nb.toString().split("");
+    const MINES_TO_DISPLAY_NUMBERS_ARRAY = gameInfos.grid.minesNb.toString().split("");
     const originalLength = MINES_TO_DISPLAY_NUMBERS_ARRAY.length;
     if (originalLength < 3) {
         for (let i = 1; i <= 3 - originalLength; i++) {
@@ -211,12 +206,15 @@ const displayMinesInfo = () => {
 
 const setMinesPositions = () => {
     console.log("setMinesPositions");    
-    // minesPositions.push([Math.floor(Math.random() * gameInfos.grid.x), Math.floor(Math.random() * gameInfos.grid.y)]);
+    minesPositions.push([Math.floor(Math.random() * gameInfos.grid.x), Math.floor(Math.random() * gameInfos.grid.y)]);
     while (minesPositions.length < gameInfos.grid.minesNb) {
         const x = Math.floor(Math.random() * gameInfos.grid.x);
         const y = Math.floor(Math.random() * gameInfos.grid.y);
-        const isAlreadyPresent = minesPositions.find(p => p[0] === x && p[1] === y);
-        if (isAlreadyPresent === undefined) minesPositions.push([x, y]);
+        let isAlreadyPresent = false;
+        minesPositions.forEach(p => {
+            if (p[0] === x && p[1] === y) isAlreadyPresent = true;
+        });
+        if (!isAlreadyPresent) minesPositions.push([Math.floor(Math.random() * gameInfos.grid.x), Math.floor(Math.random() * gameInfos.grid.y)]);
     }
     // console.log("minesPositions:", minesPositions);    
 }
@@ -273,23 +271,6 @@ const checkHintsAndMines = (cell) => {
     }
 }
 
-const checkIfWin = () => {
-    console.log("checkIfWin");
-    let isWin = false;
-    console.log("getAllOpenedNotMinedCells():", getAllOpenedNotMinedCells());
-    console.log("(gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb):", (gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb));    
-    const hasCorrectNumberOfOpenedCells = getAllOpenedNotMinedCells() === (gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb);
-    let hasFlagPlacedCorrectly = true;
-    if (flagsPositions.length > 0) flagsPositions.forEach(fp => {
-        const isPresent = minesPositions.find(mp => mp[0] === fp[0] && mp[1] === fp[1]);
-        // console.log("isPresent:", isPresent);        
-        if (isPresent === undefined) hasFlagPlacedCorrectly = false;
-    });
-    console.log("hasCorrectNumberOfOpenedCells:", hasCorrectNumberOfOpenedCells);    
-    console.log("hasFlagPlacedCorrectly:", hasFlagPlacedCorrectly);    
-    return hasCorrectNumberOfOpenedCells && hasFlagPlacedCorrectly;
-}
-
 const countingTime = () => {
     console.log("countingTime");
     if (gameInfos.time.starting === 0) gameInfos.time.starting = Date.now();
@@ -310,31 +291,6 @@ const countingTime = () => {
     loop = requestAnimationFrame(timeLoop);
 }
 
-const addOpenCell = (position) => {
-    console.log("addOpenCell position:", position);
-    const x = parseInt(position.x);
-    const y = parseInt(position.y);
-    openedCellsPositions.push([x, y]);
-}
-
-const checkIfCellAlreadyOpen = (position) => {
-    console.log("checkIfCellAlreadyOpen position:", position);
-    const x = parseInt(position.x);
-    const y = parseInt(position.y);
-    let isAlreadyPresent = false;
-    openedCellsPositions.forEach(p => {
-        if (p[0] === x && p[1] === y) isAlreadyPresent = true;
-    });
-    return isAlreadyPresent;
-}
-
-const getAllOpenedNotMinedCells = () => {
-    console.log("getAllOpenedNotMinedCells");
-    const nb = Array.from(document.querySelectorAll(".cell.opened:not(.mined)")).length;
-    console.log("nb:", nb);
-    return nb;
-}
-
 const addFlag = (position) => {
     // console.log("addFlag position:", position);
     const x = parseInt(position.x);
@@ -345,7 +301,7 @@ const addFlag = (position) => {
     });
     if (!isAlreadyPresent) {
         flagsPositions.push([x, y]);
-        gameInfos.grid.flagsPlaced++;
+        gameInfos.grid.minesNb--;
         displayMinesInfo();
     }
 }
@@ -360,13 +316,13 @@ const removeFlag = (position) => {
     // console.log("index:", index);    
     if (index !== -1) { 
         flagsPositions.splice(index, 1);
-        gameInfos.grid.flagsPlaced--;
+        gameInfos.grid.minesNb++;
         displayMinesInfo();
     }
 }
 
 const checkCell = (position) => {
-    // console.log("checkCell position:", position);
+    console.log("checkCell position:", position);
     const x = parseInt(position.x);
     const y = parseInt(position.y);
     const isFlagIndex = flagsPositions.findIndex(p =>
@@ -381,20 +337,18 @@ const checkCell = (position) => {
         isMine: isMineIndex !== -1,
         isHint: isHint
     }
-    // console.log("statuses:", statuses);
+    console.log("statuses:", statuses);
     return statuses;
 }
 
 const revealCell = (cell, first = false) => {
-    // console.log("revealCell cell:", cell);
-    console.log("NOT FLAGGED!!!!");    
+    console.log("revealCell cell:", cell);
     const position = { x: cell.dataset.x, y: cell.dataset.y };
     const statuses = checkCell(position);
     if (statuses.isFlag) return;
     if (statuses.isMine & first) {
         cell.setAttribute("data-number", "");
-        cell.classList.add("opened");
-        cell.classList.add("mined", "owned");
+        cell.classList.add("mined");
         endGame("lose");
         return;
     }
@@ -402,22 +356,12 @@ const revealCell = (cell, first = false) => {
         const value = gridHintsAndMines[position.y][position.x];
         cell.setAttribute("data-number", value);
         cell.classList.add("opened");
-        if (checkIfWin()) {
-            endGame("win");
-            return;
-        }
         return;
     }
     if (!cell.classList.contains("opened")) {
-    // if (!checkIfCellAlreadyOpen({ x: position.x, y: position.y })) {
-        addOpenCell({ x: cell.dataset.x, y: cell.dataset.y });
         cell.classList.add("opened");
         const x = parseInt(position.x);
         const y = parseInt(position.y);
-        if (checkIfWin()) {
-            endGame("win");
-            return;
-        }
         if (y - 1 >= 0) {
             if (x - 1 >= 0) revealCell(getCell({ x: x - 1, y: y - 1 }));
             revealCell(getCell({ x: x, y: y - 1 }));
@@ -433,50 +377,21 @@ const revealCell = (cell, first = false) => {
     }
 }
 
-const revealAllMines = () => {
-    console.log("revealAllMines");
-    minesPositions.forEach(p => {
-        const cell = getCell({ x: p[0], y: p[1] });
-        // console.log("cell:", cell);
-        if (!cell.classList.contains("mined"))
-            cell.classList.add("opened", "mined");
-    });
-}
-
-const revealAllFlags = () => {
-    console.log("revealAllFlags");
-    minesPositions.forEach(p => {
-        const cell = getCell({ x: p[0], y: p[1] });
-        // console.log("cell:", cell);
-        if (!cell.classList.contains("flagged")) {
-            cell.classList.add("flagged");
-            gameInfos.grid.flagsAutoRevealed++;
-        }
-    });
-    displayMinesInfo();
-}
-
-const initialize = (full = true) => {
+const initialize = () => {
     minesPositions.length = 0;
     gridHintsAndMines.length = 0;
     actions.gridpointerdown = false;
     actions.topiconpointerdown = false;
-    gameInfos.grid.cellsOpened = 0;
-    gameInfos.grid.flagsPlaced = 0;
-    gameInfos.grid.flagsAutoRevealed = 0;
     gameInfos.time.current = 0;
     gameInfos.time.starting = 0;
-    flagsPositions.length = 0;
-    minesPositions.length = 0;
     generateCells();
-    if (!full) return;
     setMinesPositions();
     generateGridHintsAndMines();
     displayMinesInfo();
     displayTimeInfo();
 }
 
-const clearGameInfos = () => {
+const reset = () => {
     for (let i = 1; i <= 3; i++) {
         getElement(`timeNumber${i}`).textContent = "";
         getElement(`minesNumber${i}`).textContent = "";
@@ -485,14 +400,11 @@ const clearGameInfos = () => {
 
 const resetGame = () => {
     console.log("resetGame");
-    // const willReset = confirm("Do you to reset the game?");
-    // if (!willReset) return;
+    const willReset = confirm("Do you to reset the game?");
+    if (!willReset) return;
     document.querySelector(".selected").classList.remove("selected");
     endGame();
-    initialize(false);
-    getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
-    document.querySelector(`.option_difficulty_${gameInfos.level}`).classList.add("selected");
-    setTimeout(() => { clearGameInfos(); }, 100);
+    setTimeout(() => { reset(); }, 100);
 }
 
 const startGame = () => {
@@ -510,13 +422,9 @@ const endGame = (finish) => {
     console.log("endGame");
     setStatus("end", true);
     setStatus("start", false);
+    if (finish) setPlay("finish", finish);
     getElement("gridContainer").classList.remove("started");
-    if (finish) {
-        setPlay("finish", finish);
-        getElement("gameTopIcon").src = `./${getIconUrl(finish)}`;
-        if (finish === "lose") revealAllMines();
-        if (finish === "win") revealAllFlags();
-    }
+    if (finish) getElement("gameTopIcon").src = `./${getIconUrl(finish)}`;
 }
 
 const gameSettings = (type, value) => {
@@ -544,7 +452,7 @@ const pointerdownOnGrid = (event) => {
             getElement("gameTopIcon").src = `./${getIconUrl("click")}`;
             getElement("cells").forEach(c => {
                 if (c === event.target && getStatus("start")) {
-                    if (!(c.classList.contains("clicked") || c.classList.contains("flagged") || c.classList.contains("opened"))) c.classList.add("clicked");
+                    if (!(c.classList.contains("clicked") || c.classList.contains("opened"))) c.classList.add("clicked");
                 } else {
                     if (c.classList.contains("clicked")) c.classList.remove("clicked");
                 }
@@ -627,7 +535,6 @@ const pointerup = (event) => {
     getElement("cells").forEach(c => {
         if (c.classList.contains("clicked")) c.classList.remove("clicked");
         if (c === event.target &&
-            !c.classList.contains("flagged") &&
             getStatus("start") &&
             actions.gridpointerdown &&
             buttonsClickedOnGrid.button0

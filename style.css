@@ -250,7 +250,7 @@ body {
 }
 
 .cell {
-    --iconurl: url("./assets/img/icons/");
+    --iconurl: url("");
     display: flex;
     justify-content: center;
     align-items: center;
@@ -266,6 +266,13 @@ body {
     font-family: "mine-sweeper";
     font-size: 20px;
     position: relative;
+}
+
+.cell.mined.owned {
+    background: var(--iconurl), #871f1f;
+    background-size: 90%;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .cell.mined {
