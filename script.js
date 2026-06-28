@@ -356,16 +356,16 @@ const countingTime = () => {
             if (gameInfos.time.current - gameInfos.lastTimeClick >= 150000) {
                 if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("heavysleep")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("heavysleep")}`;
             }
-            if (gameInfos.time.current - gameInfos.time.starting >= 500000) {
+            if (gameInfos.time.current - gameInfos.time.starting >= 600000) {
                 if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worryish")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worryish")}`;
             }
-            if (gameInfos.time.current - gameInfos.time.starting >= 600000) {
+            if (gameInfos.time.current - gameInfos.time.starting >= 700000) {
                 if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worried")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worried")}`;
             }
-            if (gameInfos.time.current - gameInfos.time.starting >= 700000) {
+            if (gameInfos.time.current - gameInfos.time.starting >= 800000) {
                 if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worrier")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worrier")}`;
             }
-            if (gameInfos.time.current - gameInfos.time.starting >= 800000) {
+            if (gameInfos.time.current - gameInfos.time.starting >= 900000) {
                 if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worriest")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worriest")}`;
             }
             if (gameInfos.grid.flagsPlaced > gameInfos.grid.minesNb) {
