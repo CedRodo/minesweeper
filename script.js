@@ -340,39 +340,41 @@ const countingTime = () => {
     }
     let loop;
     const timeLoop = () => {
-        gameInfos.time.current = Date.now();
-        if (getElement("gameTopIcon").src !== `./${getIconUrl("start")}`) getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
-        if (gameInfos.time.current - gameInfos.lastTimeClick >= 50000) {
-            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("sleep")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("sleep")}`;
-        }
-        if (gameInfos.time.current - gameInfos.lastTimeClick >= 100000) {
-            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("deepsleep")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("deepsleep")}`;
-        }
-        if (gameInfos.time.current - gameInfos.lastTimeClick >= 150000) {
-            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("heavysleep")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("heavysleep")}`;
-        }
-        if (gameInfos.time.current - gameInfos.time.starting >= 500000) {
-            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worryish")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worryish")}`;
-        }
-        if (gameInfos.time.current - gameInfos.time.starting >= 600000) {
-            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worried")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worried")}`;
-        }
-        if (gameInfos.time.current - gameInfos.time.starting >= 700000) {
-            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worrier")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worrier")}`;
-        }
-        if (gameInfos.time.current - gameInfos.time.starting >= 800000) {
-            if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worriest")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worriest")}`;
-        }
-        if (gameInfos.grid.flagsPlaced > gameInfos.grid.minesNb) {
-            if (getElement("gameTopIcon").src !== `./${getIconUrl("illogic")}`) getElement("gameTopIcon").src = `./${getIconUrl("illogic")}`;
-        }
-        // console.log("gameInfos.time.get():", gameInfos.time.get());        
-        if (gameInfos.time.get() >= 999000) {
-            endGame("lose");
-        }
         if (getStatus("pause") || getStatus("end")) {
             cancelAnimationFrame(loop);
         } else {
+            gameInfos.time.current = Date.now();
+            if (getElement("gameTopIcon").src !== `./${getIconUrl("start")}`) {
+                getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
+            }
+            if (gameInfos.time.current - gameInfos.lastTimeClick >= 50000) {
+                if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("sleep")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("sleep")}`;
+            }
+            if (gameInfos.time.current - gameInfos.lastTimeClick >= 100000) {
+                if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("deepsleep")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("deepsleep")}`;
+            }
+            if (gameInfos.time.current - gameInfos.lastTimeClick >= 150000) {
+                if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("heavysleep")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("heavysleep")}`;
+            }
+            if (gameInfos.time.current - gameInfos.time.starting >= 500000) {
+                if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worryish")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worryish")}`;
+            }
+            if (gameInfos.time.current - gameInfos.time.starting >= 600000) {
+                if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worried")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worried")}`;
+            }
+            if (gameInfos.time.current - gameInfos.time.starting >= 700000) {
+                if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worrier")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worrier")}`;
+            }
+            if (gameInfos.time.current - gameInfos.time.starting >= 800000) {
+                if (![`./${getIconUrl("illogic")}`, `./${getIconUrl("worriest")}`].includes(getElement("gameTopIcon").src)) getElement("gameTopIcon").src = `./${getIconUrl("worriest")}`;
+            }
+            if (gameInfos.grid.flagsPlaced > gameInfos.grid.minesNb) {
+                if (getElement("gameTopIcon").src !== `./${getIconUrl("illogic")}`) getElement("gameTopIcon").src = `./${getIconUrl("illogic")}`;
+            }
+            // console.log("gameInfos.time.get():", gameInfos.time.get());        
+            if (gameInfos.time.get() >= 999000) {
+                endGame("lose");
+            }
             requestAnimationFrame(timeLoop);
         }
         displayTimeInfo();
@@ -552,8 +554,10 @@ const touchdownCountdown = (cell) => {
         clearTimeout(touchTimeout);
         if (actions.touchtarget === cell) {
             if (!cell.classList.contains("flagged")) {
-                cell.classList.add("flagged");
-                addFlag({ x: cell.dataset.x, y: cell.dataset.y });
+                if (!cell.classList.contains("opened")) {
+                    cell.classList.add("flagged");
+                    addFlag({ x: cell.dataset.x, y: cell.dataset.y });
+                }
             } else {
                 cell.classList.remove("flagged");
                 removeFlag({ x: cell.dataset.x, y: cell.dataset.y });
@@ -637,7 +641,7 @@ const startGame = () => {
 }
 
 const endGame = (finish) => {
-    console.log("endGame");
+    console.log("endGame finish:", finish);
     setStatus("end", true);
     setStatus("start", false);
     getElement("gridContainer").classList.remove("started");
@@ -802,7 +806,9 @@ const pointerup = (event) => {
         }
         if (o.classList.contains("clicked")) o.classList.remove("clicked");
     });
-    if (!getStatus("end")) getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
+    if (!getStatus("end")) {               
+        getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
+    }
     if (getElement("gameStart").classList.contains("clicked")) getElement("gameStart").classList.remove("clicked");
     if ((event.target === getElement("gameStart") || event.target === getElement("gameTopIcon")) && actions.topiconpointerdown) {
         console.log("start!!!");        
