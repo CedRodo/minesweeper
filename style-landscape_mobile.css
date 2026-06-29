@@ -5,11 +5,16 @@ body {
 }
 
 .game_options-container {
-    height: 50px;
+    height: 100px;
+    gap: 15px;
 }
 
 .game_option {
     gap: 16px;
+}
+
+.game_option_difficulty {
+    height: 60px;
 }
 
 .option_difficulty {
@@ -17,11 +22,11 @@ body {
     font-size: 18px;
 }
 
-.game_reset-container {
+.game_option_preferences_reset_score {
     height: 50px;
 }
 
-#game_reset {
+.option_special {
     width: 120px;
     font-size: 18px;
 }
@@ -29,6 +34,41 @@ body {
 .minesweeper-container.scroll {
     padding: 0;
     justify-content: center;
+}
+
+.options-container {
+    width: 450px;
+    height: 500px;
+    justify-content: space-between;
+    border-width: 5px;
+    top: 0;
+    translate: -50% 0;
+}
+
+.option_custom_grid-container {
+    height: 150px;
+}
+
+.option_title {
+    height: 70px;
+    padding-left: 6.5%;
+    font-size: 20px;
+}
+
+.option_custom_grid_selection-container {
+    label {
+        height: 50px;
+        font-size: 18px;
+    }
+}
+
+.option_colored_themes_selection-container {
+    height: 320px;
+    padding: 4%;
+}
+
+.color_theme_cell.color_theme_selected {
+    box-shadow: 0 0 min(0.125vw, 0.25vh) min(0.375vw, 0.75vh) #383838;
 }
 
 .grid-container {

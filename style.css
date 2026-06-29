@@ -2,12 +2,102 @@
     --colorgray1: #BDBDBD;
     --colorgray2: #FFFFFF;
     --colorgray3: #7B7B7B;
+    --colorblue1: #03a9f4;
+    --colorblue2: #FFFFFF;
+    --colorblue3: #0a77a9;
+    --colororange1: #FFC107;
+    --colororange2: #FFFFFF;
+    --colororange3: #af8508;
+    --colorbeige1: beige;
+    --colorbeige2: #FFFFFF;
+    --colorbeige3: #cbcbb2;
+    --coloraquamarine1: aquamarine;
+    --coloraquamarine2: #FFFFFF;
+    --coloraquamarine3: #4eb190;
+    --colorlightgray1: lightgray;
+    --colorlightgray2: #FFFFFF;
+    --colorlightgray3: #a7a7a7;
+    --colordarkgray1: darkgray;
+    --colordarkgray2: #FFFFFF;
+    --colordarkgray3: #767676;
+    --colorburlywood1: burlywood;
+    --colorburlywood2: #FFFFFF;
+    --colorburlywood3: #8f785b;
+    --colorcyan1: cyan;
+    --colorcyan2: #FFFFFF;
+    --colorcyan3: #009595;
+    --colorpink1: pink;
+    --colorpink2: #FFFFFF;
+    --colorpink3: #b38890;
+    --colorlightpink1: lightpink;
+    --colorlightpink2: #FFFFFF;
+    --colorlightpink3: #d1969f;
+    --colordeeppink1: deeppink;
+    --colordeeppink2: #FFFFFF;
+    --colordeeppink3: #b9146d;
+    --colorgainsboro1: gainsboro;
+    --colorgainsboro2: #FFFFFF;
+    --colorgainsboro3: #959595;
+    --colorgold1: gold;
+    --colorgold2: #FFFFFF;
+    --colorgold3: #b79b04;
+    --colorkhaki1: khaki;
+    --colorkhaki2: #FFFFFF;
+    --colorkhaki3: #b7af67;
+    --colorlavender1: lavender;
+    --colorlavender2: #FFFFFF;
+    --colorlavender3: #b3b3c1;
+    --colorlightblue1: lightblue;
+    --colorlightblue2: #FFFFFF;
+    --colorlightblue3: #8faeb9;
+    --colorlightgreen1: lightgreen;
+    --colorlightgreen2: #FFFFFF;
+    --colorlightgreen3: #7ac77a;
+    --colorlightskyblue1: lightskyblue;
+    --colorlightskyblue2: #FFFFFF;
+    --colorlightskyblue3: #74b1d7;
+    --colorlinen1: linen;
+    --colorlinen2: #FFFFFF;
+    --colorlinen3: #cdc4ba;
+    --colormagenta1: magenta;
+    --colormagenta2: #FFFFFF;
+    --colormagenta3: #bf03bf;
+    --colormediumaquamarine1: mediumaquamarine;
+    --colormediumaquamarine2: #FFFFFF;
+    --colormediumaquamarine3: #4d9b80;
+    --colorroyalblue1: royalblue;
+    --colorroyalblue2: #FFFFFF;
+    --colorroyalblue3: #314fab;
+    --colorskyblue1: skyblue;
+    --colorskyblue2: #FFFFFF;
+    --colorskyblue3: #5f90a5;
+    --colorsteelblue1: steelblue;
+    --colorsteelblue2: #FFFFFF;
+    --colorsteelblue3: #243f56;
+    --colorthistle1: thistle;
+    --colorthistle2: #FFFFFF;
+    --colorthistle3: #958b95;
+    --colortomato1: tomato;
+    --colortomato2: #FFFFFF;
+    --colortomato3: #cb5c49;
+    --colorturquoise1: turquoise;
+    --colorturquoise2: #FFFFFF;
+    --colorturquoise3: #31b1a4;
+    --colorviolet1: violet;
+    --colorviolet2: #FFFFFF;
+    --colorviolet3: #bf69bf;
+    --colorwheat1: wheat;
+    --colorwheat2: #FFFFFF;
+    --colorwheat3: #bfae8e;
+    --colorwhitesmoke1: whitesmoke;
+    --colorwhitesmoke2: #FFFFFF;
+    --colorwhitesmoke3: #d5d5d5;
 }
 
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;    
+    box-sizing: border-box;
 }
 
 body {
@@ -26,10 +116,12 @@ body {
 
 .game_options-container {
     width: 100%;
-    height: 80px;
+    height: 150px;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 30px;
 }
 
 .game_option {
@@ -39,6 +131,15 @@ body {
     justify-content: center;
     align-items: center;
     gap: 20px;
+    flex-shrink: 0;
+}
+
+.game_option_difficulty {
+    height: 80px;
+}
+
+.game_option_preferences_reset_score {
+    height: 50px;
 }
 
 .option_difficulty {
@@ -75,7 +176,7 @@ body {
     padding-left: 4px;
 }
 
-.game_reset-container {
+.game_option_preferences_reset_score {
     width: 100%;
     height: 60px;
     padding: 4px;
@@ -84,7 +185,7 @@ body {
     align-items: center;
 }
 
-#game_reset {
+.option_special {
     height: 100%;
     width: 120px;
     display: flex;
@@ -102,19 +203,19 @@ body {
     user-select: none;
 }
 
-#game_reset:hover {
+.option_special:hover {
     cursor: pointer;
     filter: brightness(110%);
 }
 
 @media (any-hover: hover) {
-    #game_reset:hover {
+    .option_special:hover {
         cursor: pointer;
         filter: brightness(110%);
     }
 }
 
-#game_reset.clicked {
+.option_special.clicked {
     border-left-color: var(--colorgray3);
     border-top-color: var(--colorgray3);
     border-right-color: var(--colorgray2);
@@ -129,7 +230,152 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
+
+.options-container {
+    height: 550px;
+    width: 600px;
+    display: none;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color: var(--colorgray1);
+    border-style: solid;
+    border-width: 6px;
+    border-left-color: var(--colorgray2);
+    border-top-color: var(--colorgray2);
+    border-right-color: var(--colorgray3);
+    border-bottom-color: var(--colorgray3);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    translate: -50% -50%;
+}
+
+.options-container.open {
+    display: flex;
+}
+
+.option_custom_grid-container,
+.option_colored_themes-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+}
+
+.option_custom_grid-container {
+    height: 225px;
+}
+
+.option_colored_themes-container {
+    height: 318px;
+}
+
+.option_title {
+    width: 100%;
+    height: 90px;
+    padding-left: 7.5%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    font-family: system-ui;
+    font-size: 22px;
+}
+
+.option_custom_grid_selection-container {
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+
+    label {
+        width: 100%;
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: system-ui;
+        font-size: 20px;
+    }
+}
+
+.option_custom_grid_height-container,
+.option_custom_grid_width-container,
+.option_custom_grid_mines-container {
+    width: 25%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+}
+
+#option_custom_grid_mines {
+    width: 75%;
+    position: relative;
+}
+
+#option_custom_grid_mines::after {
+    content: attr(value);
+    width: 25%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: system-ui;
+    font-size: 16px;
+    position: absolute;
+    position: absolute;
+    right: 0;
+    top: 0;
+    translate: 100% 0;
+}
+
+.option_colored_themes_selection-container {
+    width: 100%;
+    height: 400px;
+    padding: 5%;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(3, 50px);
+}
+
+.color_theme_cell {
+    --color_theme_cell_size: 32px;
+    width: var(--color_theme_cell_size);
+    height: auto;
+    aspect-ratio: 1;
+    display: block;
+    background: var(--color1);
+    border-style: solid;
+    border-width: calc(var(--cellsize) / 8);
+    border-left-color: var(--color2);
+    border-top-color: var(--color2);
+    border-right-color: var(--color3);
+    border-bottom-color: var(--color3);
+    transition: box-shadow 0.15s, filter 0.15s;
+}
+
+.color_theme_cell.color_theme_selected {
+    box-shadow: 0 0 min(0.125vw, 0.25vh) min(0.25vw, 0.5vh) #383838;
+}
+
+@media (any-hover: hover) {
+    .color_theme_cell:not(.color_theme_selected):hover {
+        box-shadow: 0 0 min(0.125vw, 0.25vh) min(0.25vw, 0.5vh) #ffffff;
+        filter: brightness(105%);
+        cursor: pointer;
+    }
+}
+
+/* GAME */
 
 .grid-container {
     --cellsize: 32px;
@@ -146,13 +392,13 @@ body {
     justify-content: center;
     align-items: center;
     gap: var(--fillsize);
-    background-color: var(--colorgray1);
+    background-color: var(--color1);
     border-style: solid;
     border-width: calc(var(--cellsize) / 6);
-    border-left-color: var(--colorgray2);
-    border-top-color: var(--colorgray2);
-    border-right-color: var(--colorgray3);
-    border-bottom-color: var(--colorgray3);
+    border-left-color: var(--color2);
+    border-top-color: var(--color2);
+    border-right-color: var(--color3);
+    border-bottom-color: var(--color3);
     user-select: none;
 }
 
@@ -163,13 +409,13 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: var(--colorgray1);
+    background-color: var(--color1);
     border-style: solid;
     border-width: calc(var(--cellsize) / 7);
-    border-left-color: var(--colorgray3);
-    border-top-color: var(--colorgray3);
-    border-right-color: var(--colorgray2);
-    border-bottom-color: var(--colorgray2);
+    border-left-color: var(--color3);
+    border-top-color: var(--color3);
+    border-right-color: var(--color2);
+    border-bottom-color: var(--color2);
 }
 
 .game_info-container {
@@ -182,10 +428,10 @@ body {
     background-color: #111827;
     border-style: solid;
     border-width: calc(var(--cellsize) / 12);
-    border-left-color: var(--colorgray3);
-    border-top-color: var(--colorgray3);
-    border-right-color: var(--colorgray2);
-    border-bottom-color: var(--colorgray2);
+    border-left-color: var(--color3);
+    border-top-color: var(--color3);
+    border-right-color: var(--color2);
+    border-bottom-color: var(--color2);
 }
 
 .game_info {
@@ -219,25 +465,20 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--colorgray1);
+    background-color: var(--color1);
     border-style: solid;
     border-width: calc(var(--cellsize) / 8);
-    border-left-color: var(--colorgray2);
-    border-top-color: var(--colorgray2);
-    border-right-color: var(--colorgray3);
-    border-bottom-color: var(--colorgray3);
+    border-left-color: var(--color2);
+    border-top-color: var(--color2);
+    border-right-color: var(--color3);
+    border-bottom-color: var(--color3);
 }
 
 #game_start.clicked {
-    border-left-color: var(--colorgray3);
-    border-top-color: var(--colorgray3);
-    border-right-color: var(--colorgray2);
-    border-bottom-color: var(--colorgray2);
-}
-
-#game_start:hover {
-    cursor: pointer;
-    filter: brightness(105%);
+    border-left-color: var(--color3);
+    border-top-color: var(--color3);
+    border-right-color: var(--color2);
+    border-bottom-color: var(--color2);
 }
 
 @media (any-hover: hover) {
@@ -258,13 +499,13 @@ body {
     display: grid;
     grid-template-columns: repeat(var(--xcellsnb), 1fr);
     grid-template-rows: repeat(var(--ycellsnb), 1fr);
-    background-color: var(--colorgray1);
+    background-color: var(--color1);
     border-style: solid;
     border-width: calc(var(--cellsize) / 7);
-    border-left-color: var(--colorgray3);
-    border-top-color: var(--colorgray3);
-    border-right-color: var(--colorgray2);
-    border-bottom-color: var(--colorgray2);
+    border-left-color: var(--color3);
+    border-top-color: var(--color3);
+    border-right-color: var(--color2);
+    border-bottom-color: var(--color2);
 }
 
 .cell {
@@ -272,15 +513,15 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* background: var(--colorgray1); */
-    background: var(--colorgray1), var(--iconurl);
-    background: var(--iconurl), var(--colorgray1);
+    /* background: var(--color1); */
+    background: var(--color1), var(--iconurl);
+    background: var(--iconurl), var(--color1);
     border-style: solid;
     border-width: calc(var(--cellsize) / 8);
-    border-left-color: var(--colorgray2);
-    border-top-color: var(--colorgray2);
-    border-right-color: var(--colorgray3);
-    border-bottom-color: var(--colorgray3);
+    border-left-color: var(--color2);
+    border-top-color: var(--color2);
+    border-right-color: var(--color3);
+    border-bottom-color: var(--color3);
     font-family: "mine-sweeper";
     font-size: 20px;
     position: relative;
@@ -364,12 +605,13 @@ body {
     color: #808080;
 }
 
-.cell.clicked, .cell.opened {
+.cell.clicked,
+.cell.opened {
     border-width: 1px;
-    border-left-color: var(--colorgray3);
-    border-top-color: var(--colorgray3);
-    border-right-color: var(--colorgray3);
-    border-bottom-color: var(--colorgray3);
+    border-left-color: var(--color3);
+    border-top-color: var(--color3);
+    border-right-color: var(--color3);
+    border-bottom-color: var(--color3);
 }
 
 .cell.clicked {
@@ -384,4 +626,227 @@ body {
     .started .cell:not(.clicked, .opened):hover {
         filter: brightness(110%);
     }
+}
+
+[data-color=""] {
+    --color1: var(--colorgray1);
+    --color2: var(--colorgray2);
+    --color3: var(--colorgray3);
+}
+
+[data-color="gray"],
+.color_theme_cell_gray {
+    --color1: var(--colorgray1);
+    --color2: var(--colorgray2);
+    --color3: var(--colorgray3);
+}
+
+[data-color="blue"],
+.color_theme_cell_blue {
+    --color1: var(--colorblue1);
+    --color2: var(--colorblue2);
+    --color3: var(--colorblue3);
+}
+
+[data-color="orange"],
+.color_theme_cell_orange {
+    --color1: var(--colororange1);
+    --color2: var(--colororange2);
+    --color3: var(--colororange3);
+}
+
+[data-color="beige"],
+.color_theme_cell_beige {
+    --color1: var(--colorbeige1);
+    --color2: var(--colorbeige2);
+    --color3: var(--colorbeige3);
+}
+
+[data-color="aquamarine"],
+.color_theme_cell_aquamarine {
+    --color1: var(--coloraquamarine1);
+    --color2: var(--coloraquamarine2);
+    --color3: var(--coloraquamarine3);
+}
+
+[data-color="lightgray"],
+.color_theme_cell_lightgray {
+    --color1: var(--colorlightgray1);
+    --color2: var(--colorlightgray2);
+    --color3: var(--colorlightgray3);
+}
+
+[data-color="darkgray"],
+.color_theme_cell_darkgray {
+    --color1: var(--colordarkgray1);
+    --color2: var(--colordarkgray2);
+    --color3: var(--colordarkgray3);
+}
+
+[data-color="burlywood"],
+.color_theme_cell_burlywood {
+    --color1: var(--colorburlywood1);
+    --color2: var(--colorburlywood2);
+    --color3: var(--colorburlywood3);
+}
+
+[data-color="cyan"],
+.color_theme_cell_cyan {
+    --color1: var(--colorcyan1);
+    --color2: var(--colorcyan2);
+    --color3: var(--colorcyan3);
+}
+
+[data-color="pink"],
+.color_theme_cell_pink {
+    --color1: var(--colorpink1);
+    --color2: var(--colorpink2);
+    --color3: var(--colorpink3);
+}
+
+[data-color="lightpink"],
+.color_theme_cell_lightpink {
+    --color1: var(--colorlightpink1);
+    --color2: var(--colorlightpink2);
+    --color3: var(--colorlightpink3);
+}
+
+[data-color="deeppink"],
+.color_theme_cell_deeppink {
+    --color1: var(--colordeeppink1);
+    --color2: var(--colordeeppink2);
+    --color3: var(--colordeeppink3);
+}
+
+[data-color="gainsboro"],
+.color_theme_cell_gainsboro {
+    --color1: var(--colorgainsboro1);
+    --color2: var(--colorgainsboro2);
+    --color3: var(--colorgainsboro3);
+}
+
+[data-color="gold"],
+.color_theme_cell_gold {
+    --color1: var(--colorgold1);
+    --color2: var(--colorgold2);
+    --color3: var(--colorgold3);
+}
+
+[data-color="khaki"],
+.color_theme_cell_khaki {
+    --color1: var(--colorkhaki1);
+    --color2: var(--colorkhaki2);
+    --color3: var(--colorkhaki3);
+}
+
+[data-color="lavender"],
+.color_theme_cell_lavender {
+    --color1: var(--colorlavender1);
+    --color2: var(--colorlavender2);
+    --color3: var(--colorlavender3);
+}
+
+[data-color="lightblue"],
+.color_theme_cell_lightblue {
+    --color1: var(--colorlightblue1);
+    --color2: var(--colorlightblue2);
+    --color3: var(--colorlightblue3);
+}
+
+[data-color="lightskyblue"],
+.color_theme_cell_lightskyblue {
+    --color1: var(--colorlightskyblue1);
+    --color2: var(--colorlightskyblue2);
+    --color3: var(--colorlightskyblue3);
+}
+
+[data-color="lightgreen"],
+.color_theme_cell_lightgreen {
+    --color1: var(--colorlightgreen1);
+    --color2: var(--colorlightgreen2);
+    --color3: var(--colorlightgreen3);
+}
+
+[data-color="linen"],
+.color_theme_cell_linen {
+    --color1: var(--colorlinen1);
+    --color2: var(--colorlinen2);
+    --color3: var(--colorlinen3);
+}
+
+[data-color="magenta"],
+.color_theme_cell_magenta {
+    --color1: var(--colormagenta1);
+    --color2: var(--colormagenta2);
+    --color3: var(--colormagenta3);
+}
+
+[data-color="mediumaquamarine"],
+.color_theme_cell_mediumaquamarine {
+    --color1: var(--colormediumaquamarine1);
+    --color2: var(--colormediumaquamarine2);
+    --color3: var(--colormediumaquamarine3);
+}
+
+[data-color="royalblue"],
+.color_theme_cell_royalblue {
+    --color1: var(--colorroyalblue1);
+    --color2: var(--colorroyalblue2);
+    --color3: var(--colorroyalblue3);
+}
+
+[data-color="skyblue"],
+.color_theme_cell_skyblue {
+    --color1: var(--colorskyblue1);
+    --color2: var(--colorskyblue2);
+    --color3: var(--colorskyblue3);
+}
+
+[data-color="steelblue"],
+.color_theme_cell_steelblue {
+    --color1: var(--colorsteelblue1);
+    --color2: var(--colorsteelblue2);
+    --color3: var(--colorsteelblue3);
+}
+
+[data-color="thistle"],
+.color_theme_cell_thistle {
+    --color1: var(--colorthistle1);
+    --color2: var(--colorthistle2);
+    --color3: var(--colorthistle3);
+}
+
+[data-color="tomato"],
+.color_theme_cell_tomato {
+    --color1: var(--colortomato1);
+    --color2: var(--colortomato2);
+    --color3: var(--colortomato3);
+}
+
+[data-color="turquoise"],
+.color_theme_cell_turquoise {
+    --color1: var(--colorturquoise1);
+    --color2: var(--colorturquoise2);
+    --color3: var(--colorturquoise3);
+}
+
+[data-color="violet"],
+.color_theme_cell_violet {
+    --color1: var(--colorviolet1);
+    --color2: var(--colorviolet2);
+    --color3: var(--colorviolet3);
+}
+
+[data-color="wheat"],
+.color_theme_cell_wheat {
+    --color1: var(--colorwheat1);
+    --color2: var(--colorwheat2);
+    --color3: var(--colorwheat3);
+}
+
+[data-color="whitesmoke"],
+.color_theme_cell_whitesmoke {
+    --color1: var(--colorwhitesmoke1);
+    --color2: var(--colorwhitesmoke2);
+    --color3: var(--colorwhitesmoke3);
 }

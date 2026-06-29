@@ -1,5 +1,6 @@
 const elements = {
     minesweeperContainer: document.querySelector(".minesweeper-container"),
+    optionsContainer: document.querySelector(".options-container"),
     gridContainer: document.querySelector(".grid-container"),
     grid: document.querySelector(".grid"),
     minesNumber1: document.querySelector(".game_info_mines_number_1"),
@@ -9,6 +10,10 @@ const elements = {
     timeNumber2: document.querySelector(".game_info_time_number_2"),
     timeNumber3: document.querySelector(".game_info_time_number_3"),
     optionsDifficulty: document.querySelectorAll(".option_difficulty"),
+    optionCustomGridHeight: document.querySelector("#option_custom_grid_height"),
+    optionCustomGridWidth: document.querySelector("#option_custom_grid_width"),
+    optionCustomGridMines: document.querySelector("#option_custom_grid_mines"),
+    gamePreferences: document.querySelector("#game_preferences"),
     gameReset: document.querySelector("#game_reset"),
     gameStart: document.querySelector("#game_start"),
     gameTopIcon: document.querySelector(".game_top_icon"),
@@ -31,6 +36,15 @@ const buttonsClickedOnGrid = {
     button0: false,
     button1: false,
     button2: false,
+}
+
+const gamePreferences = {
+    coloredTheme: "gray",
+    customGrid: {
+        x: 9,
+        y: 9,
+        minesNb: 10
+    }
 }
 
 const gameInfos = {
@@ -61,10 +75,15 @@ const gameInfos = {
                 this.grid.y = 16;
                 this.grid.minesNb = 99;
                 break;
+            case "custom":
+                this.grid.x = gamePreferences.customGrid.x;
+                this.grid.y = gamePreferences.customGrid.y;
+                this.grid.minesNb = gamePreferences.customGrid.minesNb;
+                break;
         }
     },
     setLevel: function(level) {
-        if (!["beginner", "intermediate", "expert"].includes(level))
+        if (!["beginner", "intermediate", "expert", "custom"].includes(level))
             throw new Error("Incorrect level given:", level);
         this.level = level;
     },
@@ -92,24 +111,13 @@ const flagsPositions = [];
 const openedCellsPositions = [];
 const gridHintsAndMines = [];
 let touchTimeout;
+const coloredThemesList = [
+    "gray", "blue", "orange", "beige", "aquamarine", "lightgray", "darkgray", "burlywood", "cyan", "pink", "lightpink", "deeppink", "gainsboro",
+    "gold", "khaki", "lavender", "lightblue", "lightskyblue", "lightgreen", "linen", "magenta", "mediumaquamarine", "royalblue", "skyblue", "steelblue",
+    "thistle", "tomato", "turquoise", "violet", "wheat", "whitesmoke"
+];
 const iconsList = [
-    "click",
-    "confident",
-    "deepsleep",
-    "expert",
-    "flag",
-    "heavysleep",
-    "illogic",
-    "lose",
-    "mine",
-    "sleep",
-    "start",
-    "win",
-    "waiting",
-    "worryish",
-    "worried",
-    "worrier",
-    "worriest"
+    "click", "confident", "deepsleep", "expert", "flag", "heavysleep", "illogic", "lose", "mine",    "sleep", "start","win", "waiting", "worryish", "worried", "worrier", "worriest"
 ];
 
 const getIconUrl = (icon) => {
@@ -166,6 +174,87 @@ const setPlay = (item, value) => {
         throw new Error("Incorrect item given:", item);
     gameInfos.play[item] = value;
 }
+
+///////////////////// OPTIONS /////////////////////
+
+const generateColorThemes = () => {
+    console.log("generateColorThemes");
+    coloredThemesList.forEach(t =>  {
+        const coloredThemeCell = document.createElement("div");
+        coloredThemeCell.classList.add("color_theme_cell", `color_theme_cell_${t}`);
+        coloredThemeCell.setAttribute("data-color", t);
+        coloredThemeCell.addEventListener("pointerup", () => {
+            document.querySelectorAll(".color_theme_cell").forEach(c => c.classList.remove("color_theme_selected"));
+            coloredThemeCell.classList.add("color_theme_selected");
+            gameSettings("color", coloredThemeCell.dataset.color);
+        });
+        document.querySelector(".option_colored_themes_selection-container").append(coloredThemeCell);
+    });
+}
+
+const changeCustomGridHeightValue = (event) => {
+    console.log("changeCustomGridHeightValue event.currentTarget.value:", event.currentTarget.value);
+    gamePreferences.customGrid.y = parseInt(event.currentTarget.value);
+    const inputMinesNbMaxValue = (gamePreferences.customGrid.x * gamePreferences.customGrid.y) - 1;
+    getElement("optionCustomGridMines").setAttribute("max", inputMinesNbMaxValue);
+    if (parseInt(getElement("optionCustomGridMines").getAttribute("value")) > inputMinesNbMaxValue) {
+        getElement("optionCustomGridMines").setAttribute("value", inputMinesNbMaxValue);
+    }
+    getElement("optionsDifficulty").forEach(o => {        
+            if (!o.classList.contains("option_difficulty_custom")) {
+                if (o.classList.contains("selected")) o.classList.remove("selected");
+            } else {
+                o.classList.add("selected");
+            }
+    });
+    gameSettings("level", "custom");
+    changeGridDimensions();
+    initialize();
+}
+
+const changeCustomGridWidthValue = (event) => {
+    console.log("changeCustomGridWidthValue event.currentTarget.value:", event.currentTarget.value);
+    gamePreferences.customGrid.x = parseInt(event.currentTarget.value);
+    const inputMinesNbMaxValue = (gamePreferences.customGrid.x * gamePreferences.customGrid.y) - 1;
+    getElement("optionCustomGridMines").setAttribute("max", inputMinesNbMaxValue);
+    if (parseInt(getElement("optionCustomGridMines").getAttribute("value")) > inputMinesNbMaxValue) {
+        getElement("optionCustomGridMines").setAttribute("value", inputMinesNbMaxValue);
+    }
+    getElement("optionsDifficulty").forEach(o => {
+        if (!o.classList.contains("option_difficulty_custom")) {
+            if (o.classList.contains("selected")) o.classList.remove("selected");
+        } else {
+            o.classList.add("selected");
+        }
+    });
+    gameSettings("level", "custom");
+    changeGridDimensions();
+    initialize();
+}
+
+const changeCustomGridMinesValue = (event) => {
+    // console.log("changeCustomGridMinesValue event.currentTarget.value:", event.currentTarget.value);
+    event.currentTarget.setAttribute("value", event.currentTarget.value);
+    gamePreferences.customGrid.minesNb = parseInt(event.currentTarget.value);
+    getElement("optionsDifficulty").forEach(o => {
+        if (!o.classList.contains("option_difficulty_custom")) {
+            if (o.classList.contains("selected")) o.classList.remove("selected");
+        } else {
+            o.classList.add("selected");
+        }
+    });
+    gameSettings("level", "custom");
+    changeGridDimensions();
+    initialize();
+}
+
+const changeGridColoredTheme = () => {
+    console.log("changeGridColoredTheme");
+    getElement("gridContainer").dataset.color = gamePreferences.coloredTheme;
+}
+
+
+////////////////////// GAME //////////////////////
 
 const changeGridDimensions = () => {
     console.log("changeGridDimensions");    
@@ -382,17 +471,17 @@ const countingTime = () => {
     loop = requestAnimationFrame(timeLoop);
 }
 
-const addOpenCell = (position) => {
-    console.log("addOpenCell position:", position);
+const addOpenedCell = (position) => {
+    console.log("addOpenedCell position:", position);
     console.log("classList opened:", getCell(position).classList.contains("opened"));
     const x = parseInt(position.x);
     const y = parseInt(position.y);
-    const isAlreadyPresent = checkIfCellAlreadyOpen(position);
+    const isAlreadyPresent = checkIfCellAlreadyOpened(position);
     if (!isAlreadyPresent) openedCellsPositions.push([x, y]);
 }
 
-const checkIfCellAlreadyOpen = (position) => {
-    // console.log("checkIfCellAlreadyOpen position:", position);
+const checkIfCellAlreadyOpened = (position) => {
+    // console.log("checkIfCellAlreadyOpened position:", position);
     const x = parseInt(position.x);
     const y = parseInt(position.y);
     let isAlreadyPresent = false;
@@ -480,7 +569,7 @@ const revealCell = (cell, first = false) => {
         const value = gridHintsAndMines[position.y][position.x];
         cell.setAttribute("data-number", value);
         cell.classList.add("opened");
-        addOpenCell({ x: cell.dataset.x, y: cell.dataset.y });
+        addOpenedCell({ x: cell.dataset.x, y: cell.dataset.y });
         if (checkIfWin()) {
             endGame("win");
             return;
@@ -488,9 +577,9 @@ const revealCell = (cell, first = false) => {
         return;
     }
     if (!cell.classList.contains("opened")) {
-    // if (!checkIfCellAlreadyOpen({ x: position.x, y: position.y })) {
+    // if (!checkIfCellAlreadyOpened({ x: position.x, y: position.y })) {
         cell.classList.add("opened");
-        addOpenCell({ x: cell.dataset.x, y: cell.dataset.y });
+        addOpenedCell({ x: cell.dataset.x, y: cell.dataset.y });
         const x = parseInt(position.x);
         const y = parseInt(position.y);
         if (checkIfWin()) {
@@ -661,12 +750,22 @@ const gameSettings = (type, value) => {
         gameInfos.setLevel(value);
         gameInfos.setGridDetails();
     }
+    if (type === "custom") {
+        gameInfos.setLevel(value);
+        gameInfos.setGridDetails();
+    }
+    if (type === "color") {
+        gamePreferences.coloredTheme = value;
+        changeGridColoredTheme();
+
+    }
 }
 
 const firstInit = () => {
     console.log("firstInit");
     const level = "beginner";
     document.querySelector(`.option_difficulty_${level}`).classList.add("selected");
+    generateColorThemes();
     gameSettings("level", level);
     changeGridDimensions();
     generateCells();
@@ -757,6 +856,12 @@ const pointerdownOnStart = (event) => {
     if (!getElement("gameStart").classList.contains("clicked")) getElement("gameStart").classList.add("clicked");
 }
 
+const pointerdownOnPreferences = (event) => {
+    // console.log("pointerdownOnPreferences event.target:", event.target);
+    if (event.button !== 0) return;
+    if (!event.currentTarget.classList.contains("clicked")) event.currentTarget.classList.add("clicked");
+}
+
 const pointerdownOnReset = (event) => {
     // console.log("pointerdownOnReset event.target:", event.target);
     if (event.button !== 0) return;
@@ -814,6 +919,14 @@ const pointerup = (event) => {
         console.log("start!!!");        
         startGame();
     }
+    if (!(event.target === getElement("optionsContainer") || event.target.closest(".options-container")) && getElement("optionsContainer").classList.contains("open")) {
+        getElement("optionsContainer").classList.remove("open");
+    }
+    if ((event.target === getElement("gamePreferences") && event.target.classList.contains("clicked")) && event.button === 0) {
+        console.log("preferences!!!");
+        getElement("optionsContainer").classList.add("open");
+    }
+    if (getElement("gamePreferences").classList.contains("clicked")) getElement("gamePreferences").classList.remove("clicked");
     if ((event.target === getElement("gameReset") && event.target.classList.contains("clicked")) && event.button === 0) {
         console.log("reset!!!");
         resetGame();
@@ -831,7 +944,12 @@ firstInit();
 getElement("grid").addEventListener("pointerdown", pointerdownOnGrid);
 getElement("gameStart").addEventListener("pointerdown", pointerdownOnStart);
 getElement("gameReset").addEventListener("pointerdown", pointerdownOnReset);
+getElement("gamePreferences").addEventListener("pointerdown", pointerdownOnPreferences);
 getElement("optionsDifficulty").forEach(o => o.addEventListener("pointerdown", pointerdownOnOption));
 document.body.addEventListener("pointermove", pointermove);
 document.body.addEventListener("pointerup", pointerup);
 document.addEventListener('contextmenu', event => event.preventDefault());
+
+getElement("optionCustomGridHeight").addEventListener("input", changeCustomGridHeightValue);
+getElement("optionCustomGridWidth").addEventListener("input", changeCustomGridWidthValue);
+getElement("optionCustomGridMines").addEventListener("input", changeCustomGridMinesValue);

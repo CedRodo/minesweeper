@@ -16,13 +16,89 @@
             <button type="button" class="option_difficulty option_difficulty_beginner" data-type="level" data-level="beginner">Beginner</button>
             <button type="button" class="option_difficulty option_difficulty_intermediate" data-type="level" data-level="intermediate">Intermediate</button>
             <button type="button" class="option_difficulty option_difficulty_expert" data-type="level" data-level="expert">Expert</button>
+            <button type="button" class="option_difficulty option_difficulty_custom" data-type="level" data-level="custom">Custom</button>
+        </div>
+        <div class="game_option game_option_preferences_reset_score">
+            <button type="button" class="option_special" id="game_preferences">Options</button>
+            <button type="button" class="option_special" id="game_reset">Reset</button>
+            <button type="button" class="option_special" id="game_score">Score</button>
         </div>
     </div>
-    <div class="game_reset-container">
-        <button type="button" id="game_reset">Reset</button>
-    </div>
     <div class="minesweeper-container">
-        <div class="grid-container">
+        <div class="options-container">
+            <div class="option_custom_grid-container">
+                <div class="option_title option_custom_grid_title-container">Custom grid</div>
+                <div class="option_custom_grid_selection-container">
+                    <div class="option_custom_grid_height-container">
+                        <label for="option_custom_grid_height">Height</label>
+                        <select name="option_custom_grid_height" id="option_custom_grid_height">
+                            <option value="7" class="option_custom_grid_height">7</option>
+                            <option value="8" class="option_custom_grid_height">8</option>
+                            <option value="9" class="option_custom_grid_height" selected>9</option>
+                            <option value="10" class="option_custom_grid_height">10</option>
+                            <option value="11" class="option_custom_grid_height">11</option>
+                            <option value="12" class="option_custom_grid_height">12</option>
+                            <option value="13" class="option_custom_grid_height">13</option>
+                            <option value="14" class="option_custom_grid_height">14</option>
+                            <option value="15" class="option_custom_grid_height">15</option>
+                            <option value="16" class="option_custom_grid_height">16</option>
+                            <option value="17" class="option_custom_grid_height">17</option>
+                            <option value="18" class="option_custom_grid_height">18</option>
+                            <option value="19" class="option_custom_grid_height">19</option>
+                            <option value="20" class="option_custom_grid_height">20</option>
+                        </select>
+                    </div>
+                    <div class="option_custom_grid_width-container">
+                        <label for="option_custom_grid_width">Width</label>
+                        <select name="option_custom_grid_width" id="option_custom_grid_width">
+                            <option value="7" class="option_custom_grid_width">7</option>
+                            <option value="8" class="option_custom_grid_width">8</option>
+                            <option value="9" class="option_custom_grid_width" selected>9</option>
+                            <option value="10" class="option_custom_grid_width">10</option>
+                            <option value="11" class="option_custom_grid_width">11</option>
+                            <option value="12" class="option_custom_grid_width">12</option>
+                            <option value="13" class="option_custom_grid_width">13</option>
+                            <option value="14" class="option_custom_grid_width">14</option>
+                            <option value="15" class="option_custom_grid_width">15</option>
+                            <option value="16" class="option_custom_grid_width">16</option>
+                            <option value="17" class="option_custom_grid_width">17</option>
+                            <option value="18" class="option_custom_grid_width">18</option>
+                            <option value="19" class="option_custom_grid_width">19</option>
+                            <option value="20" class="option_custom_grid_width">20</option>
+                            <option value="21" class="option_custom_grid_width">21</option>
+                            <option value="22" class="option_custom_grid_width">22</option>
+                            <option value="23" class="option_custom_grid_width">23</option>
+                            <option value="24" class="option_custom_grid_width">24</option>
+                            <option value="25" class="option_custom_grid_width">25</option>
+                            <option value="26" class="option_custom_grid_width">26</option>
+                            <option value="27" class="option_custom_grid_width">27</option>
+                            <option value="28" class="option_custom_grid_width">28</option>
+                            <option value="29" class="option_custom_grid_width">29</option>
+                            <option value="30" class="option_custom_grid_width">30</option>
+                            <option value="31" class="option_custom_grid_width">31</option>
+                            <option value="32" class="option_custom_grid_width">32</option>
+                            <option value="33" class="option_custom_grid_width">33</option>
+                            <option value="34" class="option_custom_grid_width">34</option>
+                            <option value="35" class="option_custom_grid_width">35</option>
+                            <option value="36" class="option_custom_grid_width">36</option>
+                            <option value="37" class="option_custom_grid_width">37</option>
+                            <option value="38" class="option_custom_grid_width">38</option>
+                            <option value="39" class="option_custom_grid_width">39</option>
+                            <option value="40" class="option_custom_grid_width">40</option>
+                        </select>
+                    </div>
+                    <div class="option_custom_grid_mines-container">
+                        <label for="option_custom_grid_mines">Mines</label>
+                        <input type="range" name="option_custom_grid_mines" id="option_custom_grid_mines" min="1" max="80" step="1" value="10">
+                    </div>
+                </div>
+            </div>
+            <div class="option_colored_themes-container">
+                <div class="option_title option_colored_themes_title-container">Colored themes</div>
+                <div class="option_colored_themes_selection-container"></div>
+            </div>
+        </div>
+        <div class="grid-container" data-color="gray">
             <div class="top-container">
                 <div class="game_info-container game_info_mines-container">
                     <div class="game_info game_info_mines game_info_mines_1">8
