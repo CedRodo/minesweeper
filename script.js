@@ -15,6 +15,7 @@ const elements = {
     optionCustomGridMines: document.querySelector("#option_custom_grid_mines"),
     gamePreferences: document.querySelector("#game_preferences"),
     gameReset: document.querySelector("#game_reset"),
+    gameScores: document.querySelector("#game_scores"),
     gameStart: document.querySelector("#game_start"),
     gameTopIcon: document.querySelector(".game_top_icon"),
     cells: () => {
@@ -104,6 +105,21 @@ const gameInfos = {
         finish: ""
     },
     lastTimeClick: 0
+}
+
+const scores = {
+    beginner: {
+        name: "",
+        time: ""
+    },
+    intermediate: {
+        name: "",
+        time: ""
+    },
+    expert: {
+        name: "",
+        time: ""
+    }
 }
 
 const minesPositions = [];
@@ -292,6 +308,12 @@ const generateCells = () => {
         }
     }
 
+}
+
+const scoreTime = (duration) => {
+    // console.log("convertMsToHrMnMs duration:", duration);
+    let time = (duration / 1000).toFixed(2);
+    return time;
 }
 
 const timeToDisplay = (duration) => {
@@ -603,25 +625,31 @@ const revealCell = (cell, first = false) => {
 
 const revealAllMines = () => {
     console.log("revealAllMines");
-    minesPositions.forEach(p => {
-        const cell = getCell({ x: p[0], y: p[1] });
-        // console.log("cell:", cell);
-        if (!cell.classList.contains("mined"))
-            cell.classList.add("opened", "mined");
+    return new Promise(resolve => {
+        minesPositions.forEach(p => {
+            const cell = getCell({ x: p[0], y: p[1] });
+            // console.log("cell:", cell);
+            if (!cell.classList.contains("mined"))
+                cell.classList.add("opened", "mined");
+        });
+        resolve();
     });
 }
 
 const revealAllFlags = () => {
     console.log("revealAllFlags");
-    minesPositions.forEach(p => {
-        const cell = getCell({ x: p[0], y: p[1] });
-        // console.log("cell:", cell);
-        if (!cell.classList.contains("flagged")) {
-            cell.classList.add("flagged");
-            gameInfos.grid.flagsAutoRevealed++;
-        }
+    return new Promise(resolve => {
+        minesPositions.forEach(p => {
+            const cell = getCell({ x: p[0], y: p[1] });
+            // console.log("cell:", cell);
+            if (!cell.classList.contains("flagged")) {
+                cell.classList.add("flagged");
+                gameInfos.grid.flagsAutoRevealed++;
+            }
+        });
+        displayMinesInfo();
+        resolve();
     });
-    displayMinesInfo();
 }
 
 const checkForMisplacedFlags = () => {
@@ -665,6 +693,24 @@ const touchdownRelease = () => {
     actions.touchtarget = null;
     clearTimeout(touchTimeout);
 }
+
+const saveScore = () => {
+    console.log("saveScore");
+    const name = prompt("Congratulations! You got the best score!\nPlease enter your name:");
+    const level = gameInfos.level;
+    scores[level].name = name;
+    scores[level].time = gameInfos.time.get();
+    if (name) {
+        localStorage.setItem("scores", JSON.stringify(scores));
+    }
+} 
+
+const showScores = () => {
+    console.log("showScores scores:", scores);
+    alert(`Beginner: ${scores.beginner.name} => ${scoreTime(scores.beginner.time)} seconds\n
+Intermediate: ${scores.intermediate.name} => ${scoreTime(scores.intermediate.time)} seconds\n
+Expert: ${scores.expert.name} => ${scoreTime(scores.expert.time)} seconds`);
+} 
 
 const initialize = (full = true) => {
     minesPositions.length = 0;
@@ -729,7 +775,7 @@ const startGame = () => {
     getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
 }
 
-const endGame = (finish) => {
+const endGame = async (finish) => {
     console.log("endGame finish:", finish);
     setStatus("end", true);
     setStatus("start", false);
@@ -741,7 +787,14 @@ const endGame = (finish) => {
             revealAllMines();
             checkForMisplacedFlags();
         }
-        if (finish === "win") revealAllFlags();
+        if (finish === "win") {
+            revealAllFlags();
+            if (gameInfos.level === "custom") return;
+            if (((scoreTime(gameInfos.time.get()) / 1000).toFixed(2) < scores[gameInfos.level].time) ||
+                scores[gameInfos.level].time === "") {
+                setTimeout(saveScore, 100);
+            }
+        }
     }
 }
 
@@ -769,6 +822,37 @@ const firstInit = () => {
     gameSettings("level", level);
     changeGridDimensions();
     generateCells();
+    if (localStorage.getItem("scores")) {
+        const scoresSaved = JSON.parse(localStorage.getItem("scores"));
+        console.log("scoresSaved:", scoresSaved);        
+        let corruptSave = false;
+        ["beginner", "intermediate", "expert"].forEach(l => {
+            if (scores[l] === undefined) {
+                corruptSave = true;
+                return;
+            }
+            if (scores[l].name === undefined) {
+                corruptSave = true;
+                return;
+            }
+            if (scores[l].time === undefined) {
+                corruptSave = true;
+                return;
+            }
+        });
+        console.log("corruptSave:", corruptSave);        
+        if (corruptSave === false) {
+            for (const key in scoresSaved) {
+                console.log(key);                
+                if (["beginner", "intermediate", "expert"].includes(key)) {
+                    scores[key].name = scoresSaved[key].name;
+                    scores[key].time = scoresSaved[key].time;
+                }
+            }
+        }
+        console.log("firstInit scores:", scores);
+        
+    }
 }
 
 const pointerdownOnGrid = (event) => {
@@ -868,6 +952,12 @@ const pointerdownOnReset = (event) => {
     if (!event.currentTarget.classList.contains("clicked")) event.currentTarget.classList.add("clicked");
 }
 
+const pointerdownOnScores = (event) => {
+    // console.log("pointerdownOnReset event.target:", event.target);
+    if (event.button !== 0) return;
+    if (!event.currentTarget.classList.contains("clicked")) event.currentTarget.classList.add("clicked");
+}
+
 const pointerdownOnOption = (event) => {
     // console.log("pointerdownOnOption event.target:", event.target);
     if (event.button !== 0) return;
@@ -932,6 +1022,11 @@ const pointerup = (event) => {
         resetGame();
     }
     if (getElement("gameReset").classList.contains("clicked")) getElement("gameReset").classList.remove("clicked");
+    if ((event.target === getElement("gameScores") && event.target.classList.contains("clicked")) && event.button === 0) {
+        console.log("scores!!!");
+        showScores();
+    }
+    if (getElement("gameScores").classList.contains("clicked")) getElement("gameScores").classList.remove("clicked");
     actions.gridpointerdown = false;
     actions.topiconpointerdown = false;
     buttonsClickedOnGrid.button0 = false;
@@ -943,8 +1038,9 @@ firstInit();
 
 getElement("grid").addEventListener("pointerdown", pointerdownOnGrid);
 getElement("gameStart").addEventListener("pointerdown", pointerdownOnStart);
-getElement("gameReset").addEventListener("pointerdown", pointerdownOnReset);
 getElement("gamePreferences").addEventListener("pointerdown", pointerdownOnPreferences);
+getElement("gameReset").addEventListener("pointerdown", pointerdownOnReset);
+getElement("gameScores").addEventListener("pointerdown", pointerdownOnScores);
 getElement("optionsDifficulty").forEach(o => o.addEventListener("pointerdown", pointerdownOnOption));
 document.body.addEventListener("pointermove", pointermove);
 document.body.addEventListener("pointerup", pointerup);
