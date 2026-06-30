@@ -110,7 +110,7 @@ body {
     align-items: center;
     gap: 50px;
     background: #313131;
-    background: linear-gradient(90deg, deepskyblue, #9adff5, deepskyblue);
+    background: linear-gradient(90deg, deepskyblue, #cff3ff, deepskyblue);
     overflow: hidden;
 }
 
@@ -606,6 +606,7 @@ body {
 }
 
 .cell.clicked,
+.cell.checking,
 .cell.opened {
     border-width: 1px;
     border-left-color: var(--color3);
@@ -614,7 +615,8 @@ body {
     border-bottom-color: var(--color3);
 }
 
-.cell.clicked {
+.cell.clicked,
+.cell.checking {
     cursor: pointer;
 }
 
@@ -623,7 +625,7 @@ body {
 }
 
 @media (any-hover: hover) {
-    .started .cell:not(.clicked, .opened):hover {
+    .started .cell:not(.clicked, .checking,.opened):hover {
         filter: brightness(110%);
     }
 }

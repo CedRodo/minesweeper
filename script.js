@@ -26,6 +26,7 @@ const elements = {
 const actions = {
     gridpointerdown: false,
     topiconpointerdown: false,
+    checkingcellsaround: false,
     touchdown: false,
     longtouch: true,
     touchtarget: null,
@@ -45,7 +46,8 @@ const gamePreferences = {
         x: 9,
         y: 9,
         minesNb: 10
-    }
+    },
+    level: "beginner"
 }
 
 const gameInfos = {
@@ -87,6 +89,7 @@ const gameInfos = {
         if (!["beginner", "intermediate", "expert", "custom"].includes(level))
             throw new Error("Incorrect level given:", level);
         this.level = level;
+        gamePreferences.level = level;
     },
     time: {
         current: 0,
@@ -104,6 +107,7 @@ const gameInfos = {
     play: {
         finish: ""
     },
+    firstClick: false,
     lastTimeClick: 0
 }
 
@@ -126,6 +130,8 @@ const minesPositions = [];
 const flagsPositions = [];
 const openedCellsPositions = [];
 const gridHintsAndMines = [];
+const cellsToAddClicked = [];
+let nbOfFlagsInCheckAround = 0;
 let touchTimeout;
 const coloredThemesList = [
     "gray", "blue", "orange", "beige", "aquamarine", "lightgray", "darkgray", "burlywood", "cyan", "pink", "lightpink", "deeppink", "gainsboro",
@@ -354,7 +360,7 @@ const displayMinesInfo = () => {
 }
 
 const setMinesPositions = () => {
-    console.log("setMinesPositions");
+    // console.log("setMinesPositions");
     const fCPx = parseInt(gameInfos.grid.firstClickPosition.x);
     const fCPy = parseInt(gameInfos.grid.firstClickPosition.y);
     if (fCPx === null ||
@@ -366,8 +372,8 @@ const setMinesPositions = () => {
         const x = Math.floor(Math.random() * gameInfos.grid.x);
         const y = Math.floor(Math.random() * gameInfos.grid.y);
         const isAlreadyPresent = minesPositions.find(p => p[0] === x && p[1] === y);
-        console.log("isAlreadyPresent/x -> fCPx/y -> fCPy:", isAlreadyPresent, "/", x,"->",fCPx,"/", y,"->",fCPy);
-        console.log("isAlreadyPresent === undefined && !((x === fCPx) && (y === fCPy)):", isAlreadyPresent === undefined && !((x === fCPx) && (y === fCPy)));        
+        // console.log("isAlreadyPresent/x -> fCPx/y -> fCPy:", isAlreadyPresent, "/", x,"->",fCPx,"/", y,"->",fCPy);
+        // console.log("isAlreadyPresent === undefined && !((x === fCPx) && (y === fCPy)):", isAlreadyPresent === undefined && !((x === fCPx) && (y === fCPy)));        
         if (isAlreadyPresent === undefined && !((x === fCPx) && (y === fCPy)))
             minesPositions.push([x, y]);
     }
@@ -427,9 +433,9 @@ const checkHintsAndMines = (cell) => {
 }
 
 const checkIfWin = () => {
-    console.log("checkIfWin");
+    // console.log("checkIfWin");
     let isWin = false;
-    console.log("checkIfWin getAllOpenedNotMinedCells():", getAllOpenedNotMinedCells());
+    // console.log("checkIfWin getAllOpenedNotMinedCells():", getAllOpenedNotMinedCells());
     // console.log("(gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb):", (gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb));    
     const hasCorrectNumberOfOpenedCells = getAllOpenedNotMinedCells() === (gameInfos.grid.x * gameInfos.grid.y) - (gameInfos.grid.minesNb);
     let hasFlagPlacedCorrectly = true;
@@ -438,8 +444,8 @@ const checkIfWin = () => {
         // console.log("isPresent:", isPresent);        
         if (isPresent === undefined) hasFlagPlacedCorrectly = false;
     });
-    console.log("hasCorrectNumberOfOpenedCells:", hasCorrectNumberOfOpenedCells);    
-    console.log("hasFlagPlacedCorrectly:", hasFlagPlacedCorrectly);    
+    // console.log("hasCorrectNumberOfOpenedCells:", hasCorrectNumberOfOpenedCells);    
+    // console.log("hasFlagPlacedCorrectly:", hasFlagPlacedCorrectly);    
     return hasCorrectNumberOfOpenedCells && hasFlagPlacedCorrectly;
 }
 
@@ -494,8 +500,8 @@ const countingTime = () => {
 }
 
 const addOpenedCell = (position) => {
-    console.log("addOpenedCell position:", position);
-    console.log("classList opened:", getCell(position).classList.contains("opened"));
+    // console.log("addOpenedCell position:", position);
+    // console.log("classList opened:", getCell(position).classList.contains("opened"));
     const x = parseInt(position.x);
     const y = parseInt(position.y);
     const isAlreadyPresent = checkIfCellAlreadyOpened(position);
@@ -514,9 +520,9 @@ const checkIfCellAlreadyOpened = (position) => {
 }
 
 const getAllOpenedNotMinedCells = () => {
-    console.log("getAllOpenedNotMinedCells");
+    // console.log("getAllOpenedNotMinedCells");
     const nb = Array.from(document.querySelectorAll(".cell.opened:not(.mined)")).length;
-    console.log("nb:", nb);
+    // console.log("nb:", nb);
     return nb;
 }
 
@@ -623,33 +629,128 @@ const revealCell = (cell, first = false) => {
     }
 }
 
+const checkAround = (position) => {
+    // console.log("checkAround position:", position);
+    const x = parseInt(position.x);
+    const y = parseInt(position.y);
+    let nbOfFlags = 0;
+    if (y - 1 >= 0) {
+        if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y - 1 }).isOpen) {
+            if (!checkCell({ x: x - 1, y: y - 1 }).isFlag) {
+                cellsToAddClicked.push({ x: x - 1, y: y - 1 });
+            } else {
+                nbOfFlags++;
+            }
+        }
+        if (!checkCell({ x: x, y: y - 1 }).isOpen) {
+            if (!checkCell({ x: x, y: y - 1 }).isFlag) {
+                cellsToAddClicked.push({ x: x, y: y - 1 });
+            } else {
+                nbOfFlags++;
+            }
+        }
+        if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y - 1 }).isOpen) {
+            if (!checkCell({ x: x + 1, y: y - 1 }).isFlag) {
+                cellsToAddClicked.push({ x: x + 1, y: y - 1 });
+            } else {
+                nbOfFlags++;
+            }
+        }
+    }
+    if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y }).isOpen) {
+        if (!checkCell({ x: x - 1, y: y }).isFlag) {
+            cellsToAddClicked.push({ x: x - 1, y: y });
+        } else {
+            nbOfFlags++;
+        }
+    }
+    if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y }).isOpen) {
+        if (!checkCell({ x: x + 1, y: y }).isFlag) {
+            cellsToAddClicked.push({ x: x + 1, y: y });
+        } else {
+            nbOfFlags++;
+        }
+    }
+    if (y + 1 < gameInfos.grid.y) {
+        if (x - 1 >= 0 && !checkCell({ x: x - 1, y: y + 1 }).isOpen) {
+            if (!checkCell({ x: x - 1, y: y + 1 }).isFlag) {
+                cellsToAddClicked.push({ x: x - 1, y: y + 1 });
+            } else {
+                nbOfFlags++;
+            }
+        }
+        if (!checkCell({ x: x, y: y + 1 }).isOpen) {
+            if (!checkCell({ x: x, y: y + 1 }).isFlag) {
+                cellsToAddClicked.push({ x: x, y: y + 1 });
+            } else {
+                nbOfFlags++;
+            }
+        }
+        if (x + 1 < gameInfos.grid.x && !checkCell({ x: x + 1, y: y + 1 }).isOpen) {
+            if (!checkCell({ x: x + 1, y: y + 1 }).isFlag) {
+                cellsToAddClicked.push({ x: x + 1, y: y + 1 });
+            } else {
+                nbOfFlags++;
+            }
+        }
+    }
+    if (nbOfFlagsInCheckAround === 0) nbOfFlagsInCheckAround = nbOfFlags;
+    // console.log("cellsToAddClicked:", cellsToAddClicked);
+    if (cellsToAddClicked.length > 0) {
+        actions.checkingcellsaround = true;
+        cellsToAddClicked.forEach(c => {
+            document.querySelector(`.cell[data-x="${c.x}"][data-y="${c.y}"]`).classList.add("checking");
+        });
+    }
+}
+
+const clearCellsCheckedAround = () => {
+    console.log("clearCellsCheckedAround");
+    if (cellsToAddClicked.length > 0) {
+        cellsToAddClicked.forEach(c => {
+            document.querySelector(`.cell[data-x="${c.x}"][data-y="${c.y}"]`).classList.remove("checking");
+        });
+        cellsToAddClicked.length = 0;
+    }
+    nbOfFlagsInCheckAround = 0;
+}
+
+const revealCellsCheckedAround = (position) => {
+    // console.log("revealCellsCheckedAround position:", position);
+    const x = parseInt(position.x);
+    const y = parseInt(position.y);
+    const hintNumber = gridHintsAndMines[y][x];
+    // console.log("hintNumber/nbOfFlagsInCheckAround:", hintNumber,"/",nbOfFlagsInCheckAround);    
+    if (cellsToAddClicked.length > 0 && !isNaN(hintNumber) && nbOfFlagsInCheckAround === hintNumber) {
+        // console.log("CELLS GOT TO BE REVEALED");        
+        cellsToAddClicked.forEach(c => {
+            const cellChecked = document.querySelector(`.cell[data-x="${c.x}"][data-y="${c.y}"]`);
+            revealCell(cellChecked);
+        });
+    }
+}
+
 const revealAllMines = () => {
     console.log("revealAllMines");
-    return new Promise(resolve => {
-        minesPositions.forEach(p => {
-            const cell = getCell({ x: p[0], y: p[1] });
-            // console.log("cell:", cell);
-            if (!cell.classList.contains("mined"))
-                cell.classList.add("opened", "mined");
-        });
-        resolve();
+    minesPositions.forEach(p => {
+        const cell = getCell({ x: p[0], y: p[1] });
+        // console.log("cell:", cell);
+        if (!cell.classList.contains("mined"))
+            cell.classList.add("opened", "mined");
     });
 }
 
 const revealAllFlags = () => {
     console.log("revealAllFlags");
-    return new Promise(resolve => {
-        minesPositions.forEach(p => {
-            const cell = getCell({ x: p[0], y: p[1] });
-            // console.log("cell:", cell);
-            if (!cell.classList.contains("flagged")) {
-                cell.classList.add("flagged");
-                gameInfos.grid.flagsAutoRevealed++;
-            }
-        });
-        displayMinesInfo();
-        resolve();
+    minesPositions.forEach(p => {
+        const cell = getCell({ x: p[0], y: p[1] });
+        // console.log("cell:", cell);
+        if (!cell.classList.contains("flagged")) {
+            cell.classList.add("flagged");
+            gameInfos.grid.flagsAutoRevealed++;
+        }
     });
+    displayMinesInfo();
 }
 
 const checkForMisplacedFlags = () => {
@@ -664,7 +765,7 @@ const checkForMisplacedFlags = () => {
 }
 
 const touchdownCountdown = (cell) => {
-    console.log("touchdownCountdown cell:", cell);
+    // console.log("touchdownCountdown cell:", cell);
     actions.touchdown = true;
     actions.touchtarget = cell;
     touchTimeout = setTimeout(() => {
@@ -683,7 +784,7 @@ const touchdownCountdown = (cell) => {
         actions.touchdown = false;
         actions.touchtarget = null;
         actions.longtouch = true;
-    }, 1000);
+    }, 800);
 }
 
 const touchdownRelease = () => {
@@ -739,6 +840,7 @@ const initialize = (full = true) => {
 
 const firstClick = () => {
     console.log("firstClick");
+    gameInfos.firstClick = true;
     setMinesPositions();
     generateGridHintsAndMines();
 }
@@ -790,7 +892,9 @@ const endGame = async (finish) => {
         if (finish === "win") {
             revealAllFlags();
             if (gameInfos.level === "custom") return;
-            if (((scoreTime(gameInfos.time.get()) / 1000).toFixed(2) < scores[gameInfos.level].time) ||
+            console.log("scores time current/previous:", scoreTime(gameInfos.time.get()),"/",(scores[gameInfos.level].time / 1000).toFixed(2));
+            
+            if ((scoreTime(gameInfos.time.get()) < (scores[gameInfos.level].time / 1000).toFixed(2)) ||
                 scores[gameInfos.level].time === "") {
                 setTimeout(saveScore, 100);
             }
@@ -799,32 +903,50 @@ const endGame = async (finish) => {
 }
 
 const gameSettings = (type, value) => {
-    if (type === "level") {
-        gameInfos.setLevel(value);
-        gameInfos.setGridDetails();
-    }
-    if (type === "custom") {
+    if (["level", "custom"].includes(type)) {
         gameInfos.setLevel(value);
         gameInfos.setGridDetails();
     }
     if (type === "color") {
         gamePreferences.coloredTheme = value;
         changeGridColoredTheme();
+    }
+    savePreferences();
+}
 
+const savePreferences = () => {
+    console.log("savePreferences gamePreferences:", gamePreferences);
+    localStorage.setItem("gamePreferences", JSON.stringify(gamePreferences));
+}
+
+const loadPreferences = () => {
+    console.log("loadPreferences");
+    if (localStorage.getItem("gamePreferences")) {
+        const savedPreferences = JSON.parse(localStorage.getItem("gamePreferences"));
+        console.log("loadPreferences savedPreferences:", savedPreferences);        
+        if (savedPreferences.coloredTheme !== undefined && savedPreferences.coloredTheme !== "") gamePreferences.coloredTheme = savedPreferences.coloredTheme;
+        if (savedPreferences.level !== undefined && savedPreferences.level !== "") gamePreferences.level = savedPreferences.level;
+        if (savedPreferences.customGrid !== undefined) {
+            if (savedPreferences.customGrid.x !== undefined && !isNaN(savedPreferences.customGrid.x)) gamePreferences.customGrid.x = savedPreferences.customGrid.x;
+            if (savedPreferences.customGrid.y !== undefined && !isNaN(savedPreferences.customGrid.y)) gamePreferences.customGrid.y = savedPreferences.customGrid.y;
+            if (savedPreferences.customGrid.minesNb !== undefined && !isNaN(savedPreferences.customGrid.minesNb)) gamePreferences.customGrid.minesNb = savedPreferences.customGrid.minesNb;
+        }
     }
 }
 
 const firstInit = () => {
     console.log("firstInit");
-    const level = "beginner";
+    loadPreferences();
+    const level = gamePreferences.level;
     document.querySelector(`.option_difficulty_${level}`).classList.add("selected");
     generateColorThemes();
     gameSettings("level", level);
+    changeGridColoredTheme();
     changeGridDimensions();
     generateCells();
     if (localStorage.getItem("scores")) {
         const scoresSaved = JSON.parse(localStorage.getItem("scores"));
-        console.log("scoresSaved:", scoresSaved);        
+        // console.log("scoresSaved:", scoresSaved);        
         let corruptSave = false;
         ["beginner", "intermediate", "expert"].forEach(l => {
             if (scores[l] === undefined) {
@@ -840,7 +962,7 @@ const firstInit = () => {
                 return;
             }
         });
-        console.log("corruptSave:", corruptSave);        
+        // console.log("corruptSave:", corruptSave);        
         if (corruptSave === false) {
             for (const key in scoresSaved) {
                 console.log(key);                
@@ -850,43 +972,60 @@ const firstInit = () => {
                 }
             }
         }
-        console.log("firstInit scores:", scores);
+        // console.log("firstInit scores:", scores);
         
     }
 }
 
-const pointerdownOnGrid = (event) => {
-    // console.log("pointerdownOnGrid event.target:", event.target.dataset.x, event.target.dataset.y);
+const mousedownOnGrid = (event) => {
+    // console.log("mousedownOnGrid event.target:", event.target.dataset.x, event.target.dataset.y);
+    // console.log("mousedownOnGrid event.button:", event.button);
+    // console.log("mousedownOnGrid event.buttons:", event.buttons);
     actions.gridpointerdown = true;
     if (getStatus("start")) {
         if (event.button >= 0 && event.button <= 2) buttonsClickedOnGrid[`button${event.button}`] = true;
         if (event.button === 0) {
             getElement("gameTopIcon").src = `./${getIconUrl("click")}`;
             getElement("cells").forEach(c => {
-                if (c === event.target && getStatus("start")) {
-                    console.log("event.pointerType:", event.pointerType);
-                    if (event.pointerType === "touch") {
-                        touchdownCountdown(c);
-                        return;
+                if (c === event.target) {
+                    if (event.buttons === 3) {
+                        const position = { x: c.dataset.x, y: c.dataset.y };
+                        if (gameInfos.firstClick) {
+                            if (checkCell(position).isOpen && checkCell(position).isHint) {
+                                // console.log("DOWN WILL CHECK AROUND!");
+                                checkAround(position);
+                            }
+                        }
+                    } else {
+                        if (!(c.classList.contains("clicked") || c.classList.contains("flagged") || c.classList.contains("opened"))) c.classList.add("clicked");
                     }
-                    // if (event.pointerType === "touch") actions.touchdowntimestart = Date.now();
-                    if (!(c.classList.contains("clicked") || c.classList.contains("flagged") || c.classList.contains("opened"))) c.classList.add("clicked");
                 } else {
                     if (c.classList.contains("clicked")) c.classList.remove("clicked");
                 }
             });
             gameInfos.lastTimeClick = gameInfos.time.current;
         } else if (event.button === 2) {
-            getElement("gameTopIcon").src = `./${getIconUrl("confident")}`;
+            // console.log("EVENT BUTTONS:", event.buttons);
             getElement("cells").forEach(c => {
-                if (c === event.target && getStatus("start")) {
-                    if (!(c.classList.contains("clicked") || c.classList.contains("opened") || c.classList.contains("flagged"))) {
-                        c.classList.add("flagged");
-                        addFlag({ x: c.dataset.x, y: c.dataset.y });
+                if (c === event.target) {
+                    if (event.buttons === 3) {
+                        const position = { x: c.dataset.x, y: c.dataset.y };
+                        if (gameInfos.firstClick) {
+                            if (checkCell(position).isOpen && checkCell(position).isHint) {
+                                // console.log("DOWN WILL CHECK AROUND!");
+                                checkAround(position);
+                            }
+                        }
                     } else {
-                        if (c.classList.contains("flagged")) {
-                            c.classList.remove("flagged");
-                            removeFlag({ x: c.dataset.x, y: c.dataset.y });
+                        getElement("gameTopIcon").src = `./${getIconUrl("confident")}`;
+                        if (!(c.classList.contains("clicked") || c.classList.contains("opened") || c.classList.contains("flagged"))) {
+                            c.classList.add("flagged");
+                            addFlag({ x: c.dataset.x, y: c.dataset.y });
+                        } else {
+                            if (c.classList.contains("flagged")) {
+                                c.classList.remove("flagged");
+                                removeFlag({ x: c.dataset.x, y: c.dataset.y });
+                            }
                         }
                     }
                 } else {
@@ -900,11 +1039,37 @@ const pointerdownOnGrid = (event) => {
     }
 }
 
-const pointermove = (event) => {
-    // console.log("pointermove event.target:", event.target);
-    if (event.pointerType !== "touch") {
+const touchstartOnGrid = (event) => {
+    // console.log("touchstartOnGrid event.target:", event.target.dataset.x, event.target.dataset.y);
+    // console.log("touchstartOnGrid event.button:", event.button);
+    // console.log("touchstartOnGrid event.buttons:", event.buttons);
+    actions.gridpointerdown = true;
+    if (getStatus("start")) {
+        getElement("gameTopIcon").src = `./${getIconUrl("click")}`;
         getElement("cells").forEach(c => {
             if (c === event.target) {
+                touchdownCountdown(c);
+            }
+        });
+        gameInfos.lastTimeClick = gameInfos.time.current;
+    }
+}
+
+const mousemove = (event) => {
+    // console.log("mousemove event.target:", event.target);
+    clearCellsCheckedAround();
+    getElement("cells").forEach(c => {
+        if (c === event.target) {
+            if (actions.checkingcellsaround) {
+            // if (event.buttons === 5) {
+                const position = { x: c.dataset.x, y: c.dataset.y };
+                if (gameInfos.firstClick) {
+                    if (checkCell(position).isOpen && checkCell(position).isHint) {
+                        // console.log("MOVE WILL CHECK AROUND!");
+                        checkAround(position);
+                    }
+                }
+            } else {
                 if (!(c.classList.contains("clicked") ||
                     c.classList.contains("opened") ||
                     c.classList.contains("flagged")) &&
@@ -913,11 +1078,28 @@ const pointermove = (event) => {
                     buttonsClickedOnGrid.button0
                 )
                     c.classList.add("clicked");
-            } else {
-                if (c.classList.contains("clicked")) c.classList.remove("clicked");
             }
-        });
+        } else {
+            if (c.classList.contains("clicked")) c.classList.remove("clicked");
+        }
+    });
+    getElement("optionsDifficulty").forEach(o => {
+        if (o !== event.target) {
+            if (o.classList.contains("clicked")) o.classList.remove("clicked");
+        }
+    });
+    if (event.target === getElement("gameStart") || event.target === getElement("gameTopIcon")) {
+        if (!getElement("gameStart").classList.contains("clicked") && actions.topiconpointerdown) getElement("gameStart").classList.add("clicked");
+    } else {
+        if (getElement("gameStart").classList.contains("clicked")) getElement("gameStart").classList.remove("clicked");
     }
+    if (event.target !== getElement("gameReset")) {
+        if (getElement("gameReset").classList.contains("clicked")) getElement("gameReset").classList.remove("clicked");
+    }
+}
+
+const touchmove = (event) => {
+    // console.log("touchmove event.target:", event.target);
     getElement("optionsDifficulty").forEach(o => {
         if (o !== event.target) {
             if (o.classList.contains("clicked")) o.classList.remove("clicked");
@@ -964,15 +1146,19 @@ const pointerdownOnOption = (event) => {
     if (!event.target.classList.contains("clicked") && !event.target.classList.contains("selected") && !getStatus("start")) event.target.classList.add("clicked");
 }
 
-const pointerup = (event) => {
-    // console.log("pointerup event.target:", event.target); 
+const mouseup = (event) => {
+    // console.log("mouseup event.target:", event.target);
+    if (actions.checkingcellsaround && event.button === 0 && event.target.classList.contains("cell")) {
+        revealCellsCheckedAround({ x: event.target.dataset.x, y: event.target.dataset.y });
+        clearCellsCheckedAround();
+        actions.checkingcellsaround = false;
+    }
     getElement("cells").forEach(c => {
         if (c.classList.contains("clicked")) c.classList.remove("clicked");
         if (c === event.target &&
             !c.classList.contains("flagged") &&
             getStatus("start") &&
             actions.gridpointerdown &&
-            !actions.longtouch &&
             buttonsClickedOnGrid.button0
         ) {
             if (gameInfos.grid.firstClickPosition.x === null ||
@@ -984,7 +1170,6 @@ const pointerup = (event) => {
             revealCell(c, true);
         }
     });
-    if (event.pointerType === "touch") touchdownRelease();
     getElement("optionsDifficulty").forEach(o => {
         if (o === event.target && event.button === 0) {
             if (o.classList.contains("clicked") && !getStatus("start")) {
@@ -1034,16 +1219,85 @@ const pointerup = (event) => {
     buttonsClickedOnGrid.button2 = false;
 }
 
+const touchend = (event) => {
+    // console.log("touchend event.target:", event.target);
+    getElement("cells").forEach(c => {
+        if (c.classList.contains("clicked")) c.classList.remove("clicked");
+        if (c === event.target &&
+            !c.classList.contains("flagged") &&
+            getStatus("start") &&
+            actions.gridpointerdown &&
+            !actions.longtouch
+        ) {
+            if (gameInfos.grid.firstClickPosition.x === null ||
+                gameInfos.grid.firstClickPosition.y === null) {
+                gameInfos.grid.firstClickPosition.x = c.dataset.x;
+                gameInfos.grid.firstClickPosition.y = c.dataset.y;
+                firstClick();
+            }
+            revealCell(c, true);
+        }
+    });
+    touchdownRelease();
+    getElement("optionsDifficulty").forEach(o => {
+        if (o === event.target) {
+            if (o.classList.contains("clicked") && !getStatus("start")) {
+                if (document.querySelector(".selected"))
+                    document.querySelector(".selected").classList.remove("selected")
+                o.classList.add("selected");
+                const type = o.dataset.type;
+                const level = o.dataset[type];
+                gameSettings(type, level);
+                changeGridDimensions();
+                initialize();
+                // clearGameInfos();
+            }
+        }
+        if (o.classList.contains("clicked")) o.classList.remove("clicked");
+    });
+    if (!getStatus("end")) {               
+        getElement("gameTopIcon").src = `./${getIconUrl("start")}`;
+    }
+    if (getElement("gameStart").classList.contains("clicked")) getElement("gameStart").classList.remove("clicked");
+    if ((event.target === getElement("gameStart") || event.target === getElement("gameTopIcon")) && actions.topiconpointerdown) {
+        console.log("start!!!");        
+        startGame();
+    }
+    if (!(event.target === getElement("optionsContainer") || event.target.closest(".options-container")) && getElement("optionsContainer").classList.contains("open")) {
+        getElement("optionsContainer").classList.remove("open");
+    }
+    if ((event.target === getElement("gamePreferences") && event.target.classList.contains("clicked"))) {
+        console.log("preferences!!!");
+        getElement("optionsContainer").classList.add("open");
+    }
+    if (getElement("gamePreferences").classList.contains("clicked")) getElement("gamePreferences").classList.remove("clicked");
+    if ((event.target === getElement("gameReset") && event.target.classList.contains("clicked"))) {
+        console.log("reset!!!");
+        resetGame();
+    }
+    if (getElement("gameReset").classList.contains("clicked")) getElement("gameReset").classList.remove("clicked");
+    if ((event.target === getElement("gameScores") && event.target.classList.contains("clicked"))) {
+        console.log("scores!!!");
+        showScores();
+    }
+    if (getElement("gameScores").classList.contains("clicked")) getElement("gameScores").classList.remove("clicked");
+    actions.gridpointerdown = false;
+    actions.topiconpointerdown = false;
+}
+
 firstInit();
 
-getElement("grid").addEventListener("pointerdown", pointerdownOnGrid);
+getElement("grid").addEventListener("mousedown", mousedownOnGrid);
+getElement("grid").addEventListener("touchstart", touchstartOnGrid);
 getElement("gameStart").addEventListener("pointerdown", pointerdownOnStart);
 getElement("gamePreferences").addEventListener("pointerdown", pointerdownOnPreferences);
 getElement("gameReset").addEventListener("pointerdown", pointerdownOnReset);
 getElement("gameScores").addEventListener("pointerdown", pointerdownOnScores);
 getElement("optionsDifficulty").forEach(o => o.addEventListener("pointerdown", pointerdownOnOption));
-document.body.addEventListener("pointermove", pointermove);
-document.body.addEventListener("pointerup", pointerup);
+document.body.addEventListener("mousemove", mousemove);
+document.body.addEventListener("touchmove", touchmove);
+document.body.addEventListener("mouseup", mouseup);
+document.body.addEventListener("touchend", touchend);
 document.addEventListener('contextmenu', event => event.preventDefault());
 
 getElement("optionCustomGridHeight").addEventListener("input", changeCustomGridHeightValue);
