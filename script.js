@@ -820,7 +820,7 @@ const saveScore = () => {
 } 
 
 const showScores = () => {
-    console.log("showScores scores:", scores);
+    // console.log("showScores scores:", scores);
     let text = "";
     ["beginner", "intermediate", "expert"].forEach(l => {
         text += String(l[0]).toUpperCase() + String(l).slice(1);
@@ -831,11 +831,7 @@ const showScores = () => {
             text += "\n";
         }
     });
-    console.log("showScores text:", text);
     alert(text);
-//     alert(`Beginner: ${scores.beginner.name} => ${scoreTime(scores.beginner.time)} seconds\n
-// Intermediate: ${scores.intermediate.name} => ${scoreTime(scores.intermediate.time)} seconds\n
-// Expert: ${scores.expert.name} => ${scoreTime(scores.expert.time)} seconds`);
 } 
 
 const initialize = (full = true) => {
