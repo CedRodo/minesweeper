@@ -200,7 +200,7 @@ const setPlay = (item, value) => {
 ///////////////////// OPTIONS /////////////////////
 
 const generateColorThemes = () => {
-    console.log("generateColorThemes");
+    // console.log("generateColorThemes");
     coloredThemesList.forEach(t =>  {
         const coloredThemeCell = document.createElement("div");
         coloredThemeCell.classList.add("color_theme_cell", `color_theme_cell_${t}`);
@@ -215,7 +215,7 @@ const generateColorThemes = () => {
 }
 
 const changeCustomGridHeightValue = (event) => {
-    console.log("changeCustomGridHeightValue event.currentTarget.value:", event.currentTarget.value);
+    // console.log("changeCustomGridHeightValue event.currentTarget.value:", event.currentTarget.value);
     gamePreferences.customGrid.y = parseInt(event.currentTarget.value);
     const inputMinesNbMaxValue = (gamePreferences.customGrid.x * gamePreferences.customGrid.y) - 1;
     getElement("optionCustomGridMines").setAttribute("max", inputMinesNbMaxValue);
@@ -235,7 +235,7 @@ const changeCustomGridHeightValue = (event) => {
 }
 
 const changeCustomGridWidthValue = (event) => {
-    console.log("changeCustomGridWidthValue event.currentTarget.value:", event.currentTarget.value);
+    // console.log("changeCustomGridWidthValue event.currentTarget.value:", event.currentTarget.value);
     gamePreferences.customGrid.x = parseInt(event.currentTarget.value);
     const inputMinesNbMaxValue = (gamePreferences.customGrid.x * gamePreferences.customGrid.y) - 1;
     getElement("optionCustomGridMines").setAttribute("max", inputMinesNbMaxValue);
@@ -271,7 +271,7 @@ const changeCustomGridMinesValue = (event) => {
 }
 
 const changeGridColoredTheme = () => {
-    console.log("changeGridColoredTheme");
+    // console.log("changeGridColoredTheme");
     getElement("gridContainer").dataset.color = gamePreferences.coloredTheme;
 }
 
@@ -279,7 +279,7 @@ const changeGridColoredTheme = () => {
 ////////////////////// GAME //////////////////////
 
 const changeGridDimensions = () => {
-    console.log("changeGridDimensions");    
+    // console.log("changeGridDimensions");    
     getElement("gridContainer").style.setProperty("--xcellsnb", gameInfos.grid.x);
     getElement("gridContainer").style.setProperty("--ycellsnb", gameInfos.grid.y);
     if (gameInfos.grid.x > 16) {
@@ -291,14 +291,14 @@ const changeGridDimensions = () => {
 }
 
 const clearGrid = () => {
-    console.log("clearGrid");
+    // console.log("clearGrid");
     while (getElement("grid").firstChild) {
         getElement("grid").lastChild.remove();
     }
 }
 
 const generateCells = () => {
-    console.log("generateCells");    
+    // console.log("generateCells");    
     const x = gameInfos.grid.x;
     const y = gameInfos.grid.y;
 
@@ -381,7 +381,7 @@ const setMinesPositions = () => {
 }
 
 const generateGridHintsAndMines = () => {
-    console.log("generateGridHintsAndMines");
+    // console.log("generateGridHintsAndMines");
     for (let y = 0; y < gameInfos.grid.y; y++) {
         gridHintsAndMines.push([]);
         for (let x = 0; x < gameInfos.grid.x; x++) {
@@ -397,7 +397,7 @@ const generateGridHintsAndMines = () => {
     for (let y = 0; y < gridHintsAndMines.length; y++) {
         for (let x = 0; x < gridHintsAndMines[y].length; x++) {
             if (gridHintsAndMines[y][x] === "m") {
-                console.log("M!");
+                // console.log("M!");
                 if (y - 1 >= 0) {
                     if (x - 1 >= 0 && gridHintsAndMines[y - 1][x - 1] !== "m") gridHintsAndMines[y - 1][x - 1]++;
                     if (gridHintsAndMines[y - 1][x] !== "m") gridHintsAndMines[y - 1][x]++;
@@ -414,11 +414,11 @@ const generateGridHintsAndMines = () => {
         }
     }
 
-    console.log("gridHintsAndMines:", gridHintsAndMines);
+    // console.log("gridHintsAndMines:", gridHintsAndMines);
 }
 
 const checkHintsAndMines = (cell) => {
-    console.log("checkHintsAndMines cell:", cell);
+    // console.log("checkHintsAndMines cell:", cell);
     if (gridHintsAndMines[cell.dataset.y][cell.dataset.x] !== 0) {
         const value = gridHintsAndMines[cell.dataset.y][cell.dataset.x];
         console.log("value:", value);
@@ -450,7 +450,7 @@ const checkIfWin = () => {
 }
 
 const countingTime = () => {
-    console.log("countingTime");
+    // console.log("countingTime");
     if (gameInfos.time.starting === 0) {
         gameInfos.time.starting = Date.now();
         gameInfos.lastTimeClick = gameInfos.time.starting;
@@ -705,7 +705,7 @@ const checkAround = (position) => {
 }
 
 const clearCellsCheckedAround = () => {
-    console.log("clearCellsCheckedAround");
+    // console.log("clearCellsCheckedAround");
     if (cellsToAddClicked.length > 0) {
         cellsToAddClicked.forEach(c => {
             document.querySelector(`.cell[data-x="${c.x}"][data-y="${c.y}"]`).classList.remove("checking");
@@ -720,18 +720,31 @@ const revealCellsCheckedAround = (position) => {
     const x = parseInt(position.x);
     const y = parseInt(position.y);
     const hintNumber = gridHintsAndMines[y][x];
+    let isMined = false;
     // console.log("hintNumber/nbOfFlagsInCheckAround:", hintNumber,"/",nbOfFlagsInCheckAround);    
     if (cellsToAddClicked.length > 0 && !isNaN(hintNumber) && nbOfFlagsInCheckAround === hintNumber) {
         // console.log("CELLS GOT TO BE REVEALED");        
         cellsToAddClicked.forEach(c => {
-            const cellChecked = document.querySelector(`.cell[data-x="${c.x}"][data-y="${c.y}"]`);
+            const cellX = parseInt(c.x);
+            const cellY = parseInt(c.y);
+            const cellChecked = document.querySelector(`.cell[data-x="${cellX}"][data-y="${cellY}"]`);
             revealCell(cellChecked);
+            const cellValue = gridHintsAndMines[cellY][cellX];
+            // console.log("cellValue:", cellValue);
+            if (cellValue === "m") {
+                isMined = true;
+            }
         });
+        // console.log("isMined:", isMined);        
+        if (isMined) {
+            endGame("lose");
+            return;
+        }
     }
 }
 
 const revealAllMines = () => {
-    console.log("revealAllMines");
+    // console.log("revealAllMines");
     minesPositions.forEach(p => {
         const cell = getCell({ x: p[0], y: p[1] });
         // console.log("cell:", cell);
@@ -741,7 +754,7 @@ const revealAllMines = () => {
 }
 
 const revealAllFlags = () => {
-    console.log("revealAllFlags");
+    // console.log("revealAllFlags");
     minesPositions.forEach(p => {
         const cell = getCell({ x: p[0], y: p[1] });
         // console.log("cell:", cell);
@@ -754,7 +767,7 @@ const revealAllFlags = () => {
 }
 
 const checkForMisplacedFlags = () => {
-    console.log("checkForMisplacedFlags");
+    // console.log("checkForMisplacedFlags");
     if (flagsPositions.length > 0) flagsPositions.forEach(fp => {
         const isPresent = minesPositions.find(mp => mp[0] === fp[0] && mp[1] === fp[1]);
         // console.log("isPresent:", isPresent);        
@@ -788,7 +801,7 @@ const touchdownCountdown = (cell) => {
 }
 
 const touchdownRelease = () => {
-    console.log("touchdownRelease");
+    // console.log("touchdownRelease");
     actions.touchdown = false;
     actions.longtouch = false;
     actions.touchtarget = null;
@@ -796,7 +809,7 @@ const touchdownRelease = () => {
 }
 
 const saveScore = () => {
-    console.log("saveScore");
+    // console.log("saveScore");
     const name = prompt("Congratulations! You got the best score!\nPlease enter your name:");
     const level = gameInfos.level;
     scores[level].name = name;
@@ -808,9 +821,21 @@ const saveScore = () => {
 
 const showScores = () => {
     console.log("showScores scores:", scores);
-    alert(`Beginner: ${scores.beginner.name} => ${scoreTime(scores.beginner.time)} seconds\n
-Intermediate: ${scores.intermediate.name} => ${scoreTime(scores.intermediate.time)} seconds\n
-Expert: ${scores.expert.name} => ${scoreTime(scores.expert.time)} seconds`);
+    let text = "";
+    ["beginner", "intermediate", "expert"].forEach(l => {
+        text += String(l[0]).toUpperCase() + String(l).slice(1);
+        text += ": ";
+        if (scores[l].name !== "" && scores[l].time !== "") {
+            text += `${scores[l].name} => ${scoreTime(scores[l].time)} seconds\n`;
+        } else {
+            text += "\n";
+        }
+    });
+    console.log("showScores text:", text);
+    alert(text);
+//     alert(`Beginner: ${scores.beginner.name} => ${scoreTime(scores.beginner.time)} seconds\n
+// Intermediate: ${scores.intermediate.name} => ${scoreTime(scores.intermediate.time)} seconds\n
+// Expert: ${scores.expert.name} => ${scoreTime(scores.expert.time)} seconds`);
 } 
 
 const initialize = (full = true) => {
@@ -839,7 +864,7 @@ const initialize = (full = true) => {
 }
 
 const firstClick = () => {
-    console.log("firstClick");
+    // console.log("firstClick");
     gameInfos.firstClick = true;
     setMinesPositions();
     generateGridHintsAndMines();
@@ -853,7 +878,7 @@ const clearGameInfos = () => {
 }
 
 const resetGame = () => {
-    console.log("resetGame");
+    // console.log("resetGame");
     // const willReset = confirm("Do you to reset the game?");
     // if (!willReset) return;
     document.querySelector(".selected").classList.remove("selected");
@@ -867,7 +892,7 @@ const resetGame = () => {
 }
 
 const startGame = () => {
-    console.log("startGame");
+    // console.log("startGame");
     initialize();
     setStatus("start", true);
     setStatus("end", false);
@@ -878,7 +903,7 @@ const startGame = () => {
 }
 
 const endGame = async (finish) => {
-    console.log("endGame finish:", finish);
+    // console.log("endGame finish:", finish);
     setStatus("end", true);
     setStatus("start", false);
     getElement("gridContainer").classList.remove("started");
@@ -886,6 +911,10 @@ const endGame = async (finish) => {
         setPlay("finish", finish);
         getElement("gameTopIcon").src = `./${getIconUrl(finish)}`;
         if (finish === "lose") {
+            if (!gameInfos.firstClick) {
+                setMinesPositions();
+                generateGridHintsAndMines();
+            }
             revealAllMines();
             checkForMisplacedFlags();
         }
@@ -964,8 +993,7 @@ const firstInit = () => {
         });
         // console.log("corruptSave:", corruptSave);        
         if (corruptSave === false) {
-            for (const key in scoresSaved) {
-                console.log(key);                
+            for (const key in scoresSaved) {      
                 if (["beginner", "intermediate", "expert"].includes(key)) {
                     scores[key].name = scoresSaved[key].name;
                     scores[key].time = scoresSaved[key].time;
@@ -1057,32 +1085,34 @@ const touchstartOnGrid = (event) => {
 
 const mousemove = (event) => {
     // console.log("mousemove event.target:", event.target);
-    clearCellsCheckedAround();
-    getElement("cells").forEach(c => {
-        if (c === event.target) {
-            if (actions.checkingcellsaround) {
-            // if (event.buttons === 5) {
-                const position = { x: c.dataset.x, y: c.dataset.y };
-                if (gameInfos.firstClick) {
-                    if (checkCell(position).isOpen && checkCell(position).isHint) {
-                        // console.log("MOVE WILL CHECK AROUND!");
-                        checkAround(position);
+    if (getStatus("start")) {
+        clearCellsCheckedAround();
+        getElement("cells").forEach(c => {
+            if (c === event.target) {
+                if (actions.checkingcellsaround) {
+                    // if (event.buttons === 5) {
+                    const position = { x: c.dataset.x, y: c.dataset.y };
+                    if (gameInfos.firstClick) {
+                        if (checkCell(position).isOpen && checkCell(position).isHint) {
+                            // console.log("MOVE WILL CHECK AROUND!");
+                            checkAround(position);
+                        }
                     }
+                } else {
+                    if (!(c.classList.contains("clicked") ||
+                        c.classList.contains("opened") ||
+                        c.classList.contains("flagged")) &&
+                        getStatus("start") &&
+                        actions.gridpointerdown &&
+                        buttonsClickedOnGrid.button0
+                    )
+                        c.classList.add("clicked");
                 }
             } else {
-                if (!(c.classList.contains("clicked") ||
-                    c.classList.contains("opened") ||
-                    c.classList.contains("flagged")) &&
-                    getStatus("start") &&
-                    actions.gridpointerdown &&
-                    buttonsClickedOnGrid.button0
-                )
-                    c.classList.add("clicked");
+                if (c.classList.contains("clicked")) c.classList.remove("clicked");
             }
-        } else {
-            if (c.classList.contains("clicked")) c.classList.remove("clicked");
-        }
-    });
+        });
+    }
     getElement("optionsDifficulty").forEach(o => {
         if (o !== event.target) {
             if (o.classList.contains("clicked")) o.classList.remove("clicked");
